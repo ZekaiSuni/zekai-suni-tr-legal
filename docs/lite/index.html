@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni Lite — İhbar Takvimi & Hukuk Masası</title>
+<style>
+:root{--bg:#faf9f7;--ink:#1a1a1a;--muted:#6b6b6b;--line:#e7e2da;--dark:#141414;
+--yesil:#2f7d3a;--yesil-z:#e8f3ea;--sari:#c79100;--sari-z:#fdf3d7;--kirmizi:#b3261e;--kirmizi-z:#fbeae9;--mavi:#1a5fb4;--mavi-z:#e8f0fb;--gri-z:#efedea}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+.ust{background:var(--dark);color:#e9e6e0;padding:10px 20px;display:flex;align-items:center;gap:14px}
+.ust .logo{color:#7da7d8;font-size:18px}
+.ust .sekme{padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;color:#cfcac2}
+.ust .sekme.secili{background:#2b2b2b;color:#fff;font-weight:600}
+.govde{max-width:1100px;margin:0 auto;padding:20px 16px 70px}
+h1{font-size:23px;margin:0 0 4px}
+.ozet{color:var(--muted);font-size:14px;margin:0 0 14px}
+.ozet b.k{color:var(--kirmizi)}
+.satir{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;font-size:13.5px;display:grid;grid-template-columns:1.1fr 1.3fr auto auto;gap:14px;align-items:center;cursor:pointer}
+.satir:hover{border-color:#cfc7ba}
+.satir b.ad{font-size:14.5px}
+.satir .alt{color:var(--muted);margin:3px 0}
+.s-rozetler{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+.rozet{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.rozet.kirmizi{background:var(--kirmizi-z);color:var(--kirmizi)}
+.rozet.sari{background:var(--sari-z);color:var(--sari)}
+.rozet.yesil{background:var(--yesil-z);color:var(--yesil)}
+.rozet.gri{background:var(--gri-z);color:var(--muted)}
+.rozet.mavi{background:var(--mavi-z);color:var(--mavi)}
+.not-kutu{border:1px solid var(--line);border-left:4px solid var(--sari);border-radius:8px;padding:10px 12px;font-size:13px;margin:8px 0;background:#fffdf5}
+.not-kutu.mavi{border-left-color:var(--mavi);background:#f6f9fe}
+.not-kutu.kirmizi{border-left-color:var(--kirmizi);background:#fdf3f2}
+.alinti-kaynak{font-size:11.5px;color:var(--muted);margin-top:6px}
+.btn{background:var(--dark);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px}
+.detay{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.detay h3{margin:0 0 8px;font-size:15px}
+.detay .satir-b{margin:4px 0;font-size:13.5px}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:7px;border:1px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit}
+.feragat{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);text-align:center;font-size:12px;color:var(--muted);padding:8px}
+.cipy{font-size:12px;color:#8f8a83;border:1px solid #444;border-radius:999px;padding:2px 10px}
+.bant-alan{position:relative;height:42px;background:repeating-linear-gradient(0deg,#f3f1ec,#f3f1ec 2px,#fbfaf8 2px,#fbfaf8 4px);border-radius:8px}
+.bant{position:absolute;top:11px;height:20px;border-radius:5px;min-width:2px}
+.bant.donem{background:#cfe0f5}
+.bant.ihbar{background:repeating-linear-gradient(135deg,#5b8ecb,#5b8ecb 4px,#7da7d8 4px,#7da7d8 8px)}
+.bant.gec{background:repeating-linear-gradient(135deg,#d98a84,#d98a84 4px,#efc7c3 4px,#efc7c3 8px)}
+.bant.uzarsa{background:#e9e6e0;opacity:.7}
+.s-gun{position:absolute;top:2px;bottom:2px;width:2.5px;background:#111;z-index:3}
+.s-bugun{position:absolute;top:0;bottom:0;width:2px;background:#b3261e;z-index:3}
+.cetvel{background:var(--gri-z);border-radius:8px;padding:6px 0;margin:4px 0 12px;position:relative;height:26px}
+.cet-is{position:absolute;transform:translateX(-50%);font-size:10px;color:var(--muted);white-space:nowrap;top:8px}
+.cet-bugun{position:absolute;transform:translateX(-50%);font-size:9px;background:#141414;color:#fff;padding:1px 5px;border-radius:4px;top:2px}
+</style></head><body>
+<div class="ust"><span class="logo">◐</span> <b>Zekai Suni Lite</b>
+  <span class="sekme secili" id="t-ihbar" onclick="sekme('ihbar')">İhbar & Süre Takvimi</span>
+  <span class="sekme" id="t-masa" onclick="sekme('masa')">Hukuk Masası</span>
+  <span class="cipy" style="margin-left:auto">Kapalı Pilot</span>
+</div>
+<div class="govde"><div id="gorunum"></div></div>
+<div class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir. Kanun atıflarının teyidi sürmektedir.</div>
+
+<script>
+/* ---------- DETERMİNİSTİK SÜRE MOTORU (app/sure_motoru.py + app/tatiller.py birebir JS portu) ---------- */
+const TAM_TATILLER={2025:[[1,1],[3,30],[3,31],[4,1],[4,23],[5,1],[5,19],[6,6],[6,7],[6,8],[6,9],[7,15],[8,30],[10,29]],2026:[[1,1],[3,20],[3,21],[3,22],[4,23],[5,1],[5,19],[5,27],[5,28],[5,29],[5,30],[7,15],[8,30],[10,29]],2027:[[1,1],[3,9],[3,10],[3,11],[4,23],[5,1],[5,19],[5,16],[5,17],[5,18],[7,15],[8,30],[10,29]],2028:[[1,1],[4,23],[5,1],[5,19],[7,15],[8,30],[10,29]],2029:[[1,1],[4,23],[5,1],[5,19],[7,15],[8,30],[10,29]],2030:[[1,1],[4,23],[5,1],[5,19],[7,15],[8,30],[10,29]]};
+const YARIM={2026:[[3,19],[5,26]],2027:[[3,8]]};
+const TATIL_ADLAR={"1/1":"Yılbaşı","23/4":"Ulusal Egemenlik ve Çocuk Bayramı","1/5":"Emek ve Dayanışma Günü","19/5":"Atatürk'ü Anma, Gençlik ve Spor Bayramı","15/7":"Demokrasi ve Millî Birlik Günü","30/8":"Zafer Bayramı","29/10":"Cumhuriyet Bayramı","20/3":"Ramazan Bayramı 1. gün","21/3":"Ramazan Bayramı 2. gün","22/3":"Ramazan Bayramı 3. gün","9/3":"Ramazan Bayramı 1. gün","10/3":"Ramazan Bayramı 2. gün","11/3":"Ramazan Bayramı 3. gün","27/5":"Kurban Bayramı 1. gün","28/5":"Kurban Bayramı 2. gün","29/5":"Kurban Bayramı 3. gün","30/5":"Kurban Bayramı 4. gün"};
+function D(y,m,d){return new Date(Date.UTC(y,m-1,d));}
+function iso(d){return d.toISOString().slice(0,10);}
+function tamTatil(d){return (TAM_TATILLER[d.getUTCFullYear()]||[]).some(x=>x[0]===d.getUTCMonth()+1&&x[1]===d.getUTCDate());}
+function yarimTatil(d){return (YARIM[d.getUTCFullYear()]||[]).some(x=>x[0]===d.getUTCMonth()+1&&x[1]===d.getUTCDate());}
+function haftaSonu(d){const w=d.getUTCDay();return w===0||w===6;}
+function isGunu(d){return !haftaSonu(d)&&!tamTatil(d);}
+function izleyen(d){let k=new Date(d.getTime()+86400000);while(!isGunu(k))k=new Date(k.getTime()+86400000);return k;}
+function tatilAd(d){if(haftaSonu(d))return"Hafta sonu";if(!tamTatil(d))return null;return TATIL_ADLAR[d.getUTCMonth()+1+"/"+d.getUTCDate()]||"Resmî tatil";}
+function ayEkle(b,a){const t=b.getUTCMonth()+a;const y=b.getUTCFullYear()+Math.floor(t/12);const m=(t%12)+1;const son=new Date(Date.UTC(y,m,0)).getUTCDate();return D(y,m,Math.min(b.getUTCDate(),son));}
+function ayGeri(b,a){const t=b.getUTCMonth()-a;const y=b.getUTCFullYear()+Math.floor(t/12);const m=((t%12)+12)%12+1;const son=new Date(Date.UTC(y,m,0)).getUTCDate();return D(y,m,Math.min(b.getUTCDate(),son));}
+function mevcutDonem(b,sure,oto,uzatAy,bugun){let bas=b,bit=ayEkle(b,sure);if(!oto)return[bas,bit];const adim=uzatAy||sure;let g=0;while(bit<bugun&&g<100){bas=bit;bit=ayEkle(bit,adim);g++;}return[bas,bit];}
+function sonIhbarGunu(bit,deger,birim){if(!deger)return null;if(birim==="gün")return new Date(bit.getTime()-deger*86400000);if(birim==="hafta")return new Date(bit.getTime()-deger*7*86400000);if(birim==="ay")return ayGeri(bit,deger);return null;}
+function trGun(d){const A=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];return String(d.getUTCDate()).padStart(2,"0")+" "+A[d.getUTCMonth()]+" "+d.getUTCFullYear();}
+function hesapla(s,bugun){
+ bugun=bugun||new Date(new Date().toISOString().slice(0,10)+"T00:00:00Z");
+ if(!s.baslangic){return{ad:s.ad,karsi_taraf:s.karsi_taraf||"",tur:s.tur||"",donem_baslangici:null,donem_bitisi:null,son_ihbar_tarihi:null,son_ihbar_tatil_mi:false,tatil_adi:null,onerilen_is_gunu:null,kalan_gun:null,rozet:"Tarih yok",rozet_turu:"gri",kimse_islem_yapmazsa:"—",hukuki_not:["Sözleşmenin başlangıç tarihi kayıtlı değil — hesap yapılmadı."],band:{pencere_bas:null,pencere_son:null,bugun:iso(bugun)}};}
+ const bas=D(+s.baslangic.slice(0,4),+s.baslangic.slice(5,7),+s.baslangic.slice(8,10));
+ let donemBas=bas,donemBit=null;
+ if(s.sure_ay){const c=mevcutDonem(bas,s.sure_ay,!!s.otomatik_uzatma,s.uzatma_suresi_ay,bugun);donemBas=c[0];donemBit=c[1];}
+ const sonIhbar=donemBit?sonIhbarGunu(donemBit,s.ihbar_deger,s.ihbar_birim):null;
+ const h={ad:s.ad,karsi_taraf:s.karsi_taraf||"",tur:s.tur||"",donem_baslangici:donemBas,donem_bitisi:donemBit,son_ihbar_tarihi:sonIhbar,son_ihbar_tatil_mi:false,tatil_adi:null,onerilen_is_gunu:null,kalan_gun:null,rozet:"Belirsiz",rozet_turu:"gri",kimse_islem_yapmazsa:"",hukuki_not:[]};
+ if(sonIhbar){
+  const kuruYarim=yarimTatil(sonIhbar);
+  if(tamTatil(sonIhbar)||haftaSonu(sonIhbar)||kuruYarim){
+   h.son_ihbar_tatil_mi=true;
+   h.tatil_adi=haftaSonu(sonIhbar)?"Hafta sonu":(kuruYarim?"Bayram arifesi (yarım gün)":tatilAd(sonIhbar));
+   h.onerilen_is_gunu=izleyen(sonIhbar);
+   if(tamTatil(sonIhbar)){h.hukuki_not.push("Son ihbar günü ("+iso(sonIhbar)+") resmî tatile denk geliyor"+(h.tatil_adi?" ("+h.tatil_adi+")":"")+". TBK m. 93 mütalaasıyla bildirimi "+iso(h.onerilen_is_gunu)+" (izleyen iş günü) yapmak düşünülebilir; kesinlik için avukat onayı önerilir — tarih motoru otomatik değiştirmez.");}
+   if(haftaSonu(sonIhbar)){h.hukuki_not.push("Son ihbar günü hafta sonuna denk geliyor. KEP (TTK m. 18/3) kesintisiz çalıştığı için bildirim hafta sonunda da yapılabilir; noter yolu tercih edilecekse "+iso(h.onerilen_is_gunu)+" (izleyen iş günü) değerlendirilebilir.");}
+  }
+  if(kuruYarim){h.hukuki_not.push("Son ihbar günü bayram arifesi (yarım gün) — kurumların kapanış saati erkenleyebilir; KEP gönderimi saat kısıtlamasına tabi değildir.");}
+ }
+ if(s.karar==="İhbar gönderildi"){h.rozet="İhbar gönderildi";h.rozet_turu="yesil";}
+ else if(sonIhbar&&donemBit){
+  const kalan=Math.round((sonIhbar-bugun)/86400000);h.kalan_gun=kalan;
+  if(bugun>sonIhbar){if(bugun>=donemBit){h.rozet="Dönem bitti";h.rozet_turu="gri";}else{h.rozet="Kaçtı";h.rozet_turu="kirmizi";}}
+  else if(kalan<=7){h.rozet=kalan+" gün";h.rozet_turu="kirmizi";}
+  else if(kalan<=45){h.rozet=kalan+" gün";h.rozet_turu="sari";}
+  else{h.rozet="— "+kalan+" gün";h.rozet_turu="gri";}
+ } else {h.rozet="Belirsiz";h.rozet_turu="gri";h.hukuki_not.push("İhbar süresi sözleşmeden çıkarılamadı — maddeleri kontrol edin. Çıkarım eksik olduğu için takvim hesabı yapılmadı (uydurma tarih yok).");}
+ if(donemBit){
+  h.hukuki_not.push("Dönem bitişi 'ayın aynı günü' kuralıyla hesaplandı (MK m. 13). Başlangıç gününün sayılıp sayılmayacağı yorumuna göre ±1 günlük fark olabilir — kritik ihbarlarda bir gün önce göndermek güvenli taraftır.");
+  if(s.otomatik_uzatma){const artis=s.uzatma_artis_yuzdesi?" · %"+s.uzatma_artis_yuzdesi+" artış":"";h.kimse_islem_yapmazsa=trGun(ayEkle(donemBit,s.uzatma_suresi_ay||s.sure_ay))+" tarihine kadar uzar"+artis;}
+  else{h.kimse_islem_yapmazsa=trGun(donemBit)+" tarihinde sona erer (uzatma yok)";}
+ }
+ if((s.tur||"").toLowerCase().indexOf("kira")===0&&s.otomatik_uzatma&&Math.floor((bugun-bas)/(365*86400000))>=10){
+  h.hukuki_not.push("TBK m. 347/2: 10 yıllık uzama süresi dolmuş konut/çatılı işyeri kiralanmasında kiraya veren, her uzatma yılının sonuna doğru en az 3 ay önce yazılı fesih bildirimi yapabilir.");
+ }
+ const gosterimBas=donemBas<bugun?donemBas:bugun;
+ h.band={pencere_bas:iso(gosterimBas),pencere_son:donemBit?iso(new Date(Math.max(donemBit.getTime(),bugun.getTime())+200*86400000)):null,donem_bas:iso(donemBas),donem_son:donemBit?iso(donemBit):null,ihbar_gunu:sonIhbar?iso(sonIhbar):null,bugun:iso(bugun),uzarsa_son:(s.otomatik_uzatma&&donemBit)?iso(ayEkle(donemBit,s.uzatma_suresi_ay||s.sure_ay)):null};
+ return h;
+}
+</script>
+
+<script>
+/* ---------- KURAL MOTORU (demo çıkarım — Claude yoksa) ---------- */
+function kuralCikarim(metin){
+ const r={ad:"Bulunamadı",karsi_taraf:"Bulunamadı",tur:"Bulunamadı",baslangic:null,sure_ay:null,otomatik_uzatma:null,uzatma_suresi_ay:null,uzatma_artis_yuzdesi:null,ihbar_deger:null,ihbar_birim:null,ihbar_sekli:null,kaynak_alinti:"",arama_kapsami:["uzatma kalıpları","ihbar süresi kalıpları","bildirim şekli kalıpları","süre kalıpları"]};
+ const m=metin.match(/(\d{1,2})\s*(?:\(\w+\))?\s*ay [öo]nce/)||metin.match(/(\d{1,2})\s*(?:\(\w+\))?\s*g[üu]n [öo]nce/);
+ if(m){r.ihbar_deger=+m[1];r.ihbar_birim=m[0].includes("ay")?"ay":"gün";
+  const bas=metin.lastIndexOf("\n",metin.indexOf(m[0]))+1;const son=metin.indexOf("\n",metin.indexOf(m[0]));
+  r.kaynak_alinti=metin.slice(bas,son>bas?son:undefined).trim().slice(0,300);}
+ if(/kendili[ğg]inden uzar|ayn[ıi] s[üu]relerle uzat|yenilenmi[şs] say[ıi]l[ıi]r/i.test(metin)) r.otomatik_uzatma=true;
+ const y=metin.match(/(\d{1,2})\s*y[ıi]l(?:l[ıi]k)?\s*(?:s[üu]re|d[öo]nem)/i);if(y)r.sure_ay=+y[1]*12;
+ const a=metin.match(/(\d{1,3})\s*ay(?:l[ıi]k)?\s*(?:s[üu]re|d[öo]nem)/i);if(a&&!y)r.sure_ay=+a[1];
+ if(/noter/i.test(metin))r.ihbar_sekli="Noter";else if(/KEP|kay[ıi]tl[ıi] elektronik/i.test(metin))r.ihbar_sekli="KEP";else if(/yaz[ıi]l[ıi]/i.test(metin))r.ihbar_sekli="Yazılı";
+ const b=metin.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);if(b)r.baslangic=b[3]+"-"+b[2].padStart(2,"0")+"-"+b[1].padStart(2,"0");
+ r.cikarim_notu="Kural motoru (demo) çıkarımı — Claude sohbeti üzerinden gerçek AI analizi yapılabilir.";
+ return r;
+}
+/* ---------- CLAUDE KATMANI (yalnız Claude-hosted Artifact'ta aktif) ---------- */
+async function claudeAnaliz(metin){
+ if(typeof window.claude==="undefined"||!window.claude.complete) return null;
+ const s=await window.claude.complete("Aşağıdaki Türkçe sözleşmeden yalnızca bu JSON şemasında veri çıkar (olmayan alan null, 'Bulunamadı + arama kapsamı' notu ekle, tarih uydurma):\n{ad,karsi_taraf,tur,baslangic,sure_ay,otomatik_uzatma,uzatma_suresi_ay,uzatma_artis_yuzdesi,ihbar_deger,ihbar_birim,ihbar_sekli,kaynak_alinti,kaynak_madde,arama_kapsami_notu}\n\n"+metin.slice(0,15000));
+ try{const d=JSON.parse(s.match(/\{[\s\S]*\}/)[0]);d.cikarim_yontemi="claude";return d;}catch(e){return null;}
+}
+</script>
+
+<script>
+/* ---------- VERİ (gömülü örnek; localStorage kalıcı) ---------- */
+window.LITE_VERI = {"sozlesmeler": [{"id": 2, "ad": "Nilüfer Gayrimenkul — Genel Merkez Ofis Kira Sözleşmesi", "karsi_taraf": "Nilüfer Gayrimenkul Yatırım A.Ş.", "tur": "Kira", "dosya_adi": "", "baslangic": "2025-11-03", "sure_ay": 12, "otomatik_uzatma": true, "uzatma_suresi_ay": 12, "uzatma_artis_yuzdesi": 65.0, "ihbar_deger": 15, "ihbar_birim": "gün", "ihbar_sekli": "Noter", "fiyat_yillik": 18500000.0, "para_birimi": "TL", "kaynak_madde": "", "kaynak_sayfa": "", "kaynak_dosya": "", "karar": "", "karar_notu": "", "kararin_kimi": "", "karar_tarihi": null, "sahibi": "Av. Selin Karaca", "inceleme": true, "duzeltilmis": false, "cikarim_yontemi": "claude", "notlar": ""}, {"id": 1, "ad": "Papatya Lojistik A.Ş. — Antrepo ve Dağıtım Çerçeve Sözleşmesi", "karsi_taraf": "Papatya Lojistik ve Taşımacılık A.Ş.", "tur": "Hizmet", "dosya_adi": "", "baslangic": "2025-12-03", "sure_ay": 12, "otomatik_uzatma": true, "uzatma_suresi_ay": 12, "uzatma_artis_yuzdesi": 25.0, "ihbar_deger": 60, "ihbar_birim": "gün", "ihbar_sekli": "Noter", "fiyat_yillik": 45000000.0, "para_birimi": "TL", "kaynak_madde": "", "kaynak_sayfa": "", "kaynak_dosya": "", "karar": "", "karar_notu": "", "kararin_kimi": "", "karar_tarihi": null, "sahibi": "Av. Selin Karaca", "inceleme": false, "duzeltilmis": false, "cikarim_yontemi": "claude", "notlar": ""}, {"id": 5, "ad": "Begonvil Dağıtım — Bölge Bayilik ve Satış Sözleşmesi", "karsi_taraf": "Begonvil Tüketim Malları San. Tic. Ltd.", "tur": "Bayilik", "dosya_adi": "", "baslangic": "2026-01-02", "sure_ay": 12, "otomatik_uzatma": true, "uzatma_suresi_ay": 12, "uzatma_artis_yuzdesi": null, "ihbar_deger": 45, "ihbar_birim": "gün", "ihbar_sekli": "Noter", "fiyat_yillik": 85000000.0, "para_birimi": "TL", "kaynak_madde": "", "kaynak_sayfa": "", "kaynak_dosya": "", "karar": "", "karar_notu": "", "kararin_kimi": "", "karar_tarihi": null, "sahibi": "Av. Erhan Taşçı", "inceleme": false, "duzeltilmis": false, "cikarim_yontemi": "claude", "notlar": ""}, {"id": 4, "ad": "Erguvan Bulut Bilişim — ERP Yazılım Aboneliği", "karsi_taraf": "Erguvan Bilişim ve Yazılım A.Ş.", "tur": "Lisans", "dosya_adi": "", "baslangic": "2026-02-01", "sure_ay": 24, "otomatik_uzatma": true, "uzatma_suresi_ay": 12, "uzatma_artis_yuzdesi": null, "ihbar_deger": 90, "ihbar_birim": "gün", "ihbar_sekli": "KEP", "fiyat_yillik": 12400000.0, "para_birimi": "TL", "kaynak_madde": "", "kaynak_sayfa": "", "kaynak_dosya": "", "karar": "", "karar_notu": "", "kararin_kimi": "", "karar_tarihi": null, "sahibi": "Av. Selin Karaca", "inceleme": true, "duzeltilmis": false, "cikarim_yontemi": "claude", "notlar": ""}, {"id": 3, "ad": "Kardelen Tesis Hizmetleri — Genel Alan Temizlik ve Destek", "karsi_taraf": "Kardelen Tesis Yönetimi Ltd. Şti.", "tur": "Hizmet", "dosya_adi": "", "baslangic": "2026-05-02", "sure_ay": 12, "otomatik_uzatma": false, "uzatma_suresi_ay": null, "uzatma_artis_yuzdesi": null, "ihbar_deger": 30, "ihbar_birim": "gün", "ihbar_sekli": "Yazılı", "fiyat_yillik": 6200000.0, "para_birimi": "TL", "kaynak_madde": "", "kaynak_sayfa": "", "kaynak_dosya": "", "karar": "", "karar_notu": "", "kararin_kimi": "", "karar_tarihi": null, "sahibi": "Av. Erhan Taşçı", "inceleme": false, "duzeltilmis": false, "cikarim_yontemi": "claude", "notlar": ""}, {"id": 6, "ad": "Manolya Teknoloji — Veri Analitiği Çerçeve Sözleşmesi", "karsi_taraf": "Manolya Teknoloji ve Danışmanlık A.Ş.", "tur": "Hizmet", "dosya_adi": "", "baslangic": "2026-07-31", "sure_ay": 12, "otomatik_uzatma": false, "uzatma_suresi_ay": null, "uzatma_artis_yuzdesi": null, "ihbar_deger": 30, "ihbar_birim": "gün", "ihbar_sekli": "Yazılı", "fiyat_yillik": 3800000.0, "para_birimi": "TL", "kaynak_madde": "", "kaynak_sayfa": "", "kaynak_dosya": "", "karar": "", "karar_notu": "", "kararin_kimi": "", "karar_tarihi": null, "sahibi": "Av. Selin Karaca", "inceleme": false, "duzeltilmis": false, "cikarim_yontemi": "claude", "notlar": ""}], "talepler": [{"id": 1, "baslik": "Papatya Lojistik veri analitiği araçları kullanım sözleşmesi incelemesi", "soran_ad": "Yara Feldmann", "bolum": "Tedarik & Satınalma", "kategori": "Sözleşme İncelemesi", "metin": "Papatya Lojistik A.Ş. şirket içi kullanım analitiği aracına ilişkin hizmet sözleşmesini iletti. Sorumluluk sınırı çok dar ve verilerin yurt dışına aktarımı söz konusu. Risk yüksek midir?", "alanlar": "", "risk": "Yüksek", "hassas": false, "uzmanlik": "Bilişim ve Ticaret Hukuku", "atanan": "Av. Selin Karaca", "durum": "Bilgi bekliyor", "olusturma": "2026-10-21", "gerek_tarih": "2026-10-24", "taslak": "Sayın İlgili,\n\nİncelenen sözleşmede verilerin yurt dışı sunucularda işlenmesi öngörülmekte olup KVKK m. 9 uyarınca açık rıza veya bağlayıcı şirket kuralları aranmaktadır. Ayrıca sorumluluk tavanı şirketimiz zararlarını karşılamaktan uzaktır. Revize maddeler hazırlanmıştır.\n\nBilgilerinize sunarız.\nHukuk Müşavirliği", "taslak_turu": "Zekai Hukuki Görüş Taslağı", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Kıdemli Ticaret Hukuku Müşaviri", "cevap": "", "takip_notu": ""}, {"id": 2, "baslik": "Müşteri satınalma ekibi sipariş formumuzda tek taraflı değişiklik yaptı", "soran_ad": "Kwame Sorensen", "bolum": "Satış & Pazarlama", "kategori": "Ticari Satım", "metin": "Kurumsal müşterimiz onayladığımız sipariş formunu geri gönderdi ancak cezai şart oranını %20'ye çıkarmış ve vadeyi 90 güne çekmiş. Bu haliyle kabul edebilir miyiz?", "alanlar": "", "risk": "Orta", "hassas": false, "uzmanlik": "Borçlar Hukuku", "atanan": "Av. Erhan Taşçı", "durum": "Yeni", "olusturma": "2026-10-18", "gerek_tarih": "2026-10-20", "taslak": "Sayın İlgili,\n\nSipariş formundaki tek taraflı değişiklikler TBK m. 4 uyarınca yeni bir icap (teklif) niteliğindedir. %20 cezai şart fahiş olup şirketimizin standart %5 tavanı ile 45 gün vadesinin karşı teklif olarak sunulması tavsiye olunur.\n\nBilgilerinize sunarız.\nHukuk Müşavirliği", "taslak_turu": "Zekai Hukuki Görüş Taslağı", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Hukuk Müşaviri", "cevap": "", "takip_notu": ""}, {"id": 3, "baslik": "Yetkili satıcı/bayi bilgi paylaşımından önce kendi tek taraflı NDA'sını dayatıyor", "soran_ad": "Bram Castellano", "bolum": "İş Geliştirme", "kategori": "Gizlilik Sözleşmesi (NDA)", "metin": "Yeni bölge bayimiz olacak firma ticari sırları paylaşmadan önce kendi hazırladığı tek taraflı 1.000.000 TL cezai şartlı NDA'yı imzalamamızı şart koşuyor. İmzalayalım mı?", "alanlar": "", "risk": "Orta", "hassas": false, "uzmanlik": "Sözleşmeler Hukuku", "atanan": "Av. Selin Karaca", "durum": "Taslak hazır", "olusturma": "2026-10-25", "gerek_tarih": "2026-10-26", "taslak": "Sayın İlgili,\n\nŞirket politikamız gereği tek taraflı cezai şart içeren gizlilik taahhütnameleri kabul edilemez. Karşı tarafa ekte sunduğumuz karşılıklı (mütekabil) ve doğrudan kanıtlanabilir zararlara dayalı kurumsal Gizlilik Sözleşmesi taslağımızın iletilmesi gerekmektedir.\n\nBilgilerinize sunarız.\nHukuk Müşavirliği", "taslak_turu": "Zekai Hukuki Görüş Taslağı", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Hukuk Müşaviri", "cevap": "", "takip_notu": ""}, {"id": 4, "baslik": "Pazarlama ekibi reklamda 'Pazar liderinden iki kat hızlıyız' iddiasını kullanmak istiyor", "soran_ad": "Tobias Nwachukwu", "bolum": "Pazarlama & İletişim", "kategori": "Reklam ve Haksız Rekabet", "metin": "Yeni ürün lansmanında televizyon ve sosyal medya reklamlarımızda 'Sektör lideri rakibimizden 2 kat daha hızlı teslimat' sloganını kullanacağız. Hukuki risk nedir?", "alanlar": "", "risk": "Acil", "hassas": false, "uzmanlik": "TTK Haksız Rekabet & Reklam Kurulu", "atanan": "Av. Selin Karaca", "durum": "Yeni", "olusturma": "2026-10-26", "gerek_tarih": "2026-10-27", "taslak": "Sayın İlgili,\n\nTicari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği m. 8 uyarınca karşılaştırmalı reklamlarda yer alan iddiaların bağımsız üniversite veya akredite test laboratuvarı raporlarıyla ispatlanması zorunludur. Aksi halde Reklam Kurulu durdurma ve idari para cezası uygulayacaktır.\n\nBilgilerinize sunarız.\nHukuk Müşavirliği", "taslak_turu": "Zekai Hukuki Görüş Taslağı", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Hukuk Müşaviri", "cevap": "", "takip_notu": ""}, {"id": 5, "baslik": "İmza yetkilimiz izindeyken banka yeni hesap açılışı için imza sirküleri istiyor", "soran_ad": "Callum Oyelaran", "bolum": "Finans & Hazine", "kategori": "Şirketler Hukuku", "metin": "A Grubu imza yetkilimiz yurt dışında ve acil kredi hesabı açılması gerekiyor. B Grubu yetkililerimiz münferiden imzalayabilir mi?", "alanlar": "", "risk": "Acil", "hassas": false, "uzmanlik": "TTK Temsil ve İltizam", "atanan": "Av. Erhan Taşçı", "durum": "Yeni", "olusturma": "2026-10-27", "gerek_tarih": "2026-10-27", "taslak": "Sayın İlgili,\n\nŞirketimizin Ticaret Sicil Gazetesi'nde ilan edilen güncel imza sirküleri uyarınca; 500.000 TL üzerindeki bankacılık ve kredi işlemlerinde en az bir A Grubu yetkili ile bir B Grubu yetkilinin müşterek imzası zorunludur. B Grubu tek başına işlem yapamaz. Noter onaylı özel vekaletname temin edilmelidir.\n\nBilgilerinize sunarız.\nHukuk Müşavirliği", "taslak_turu": "Zekai Hukuki Görüş Taslağı", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Hukuk Müşaviri", "cevap": "", "takip_notu": ""}, {"id": 6, "baslik": "Yazılım ekibinden kilit bir personelin rakip şirkete geçmek üzere istifası", "soran_ad": "Hassas Başvuru", "bolum": "İnsan Kaynakları", "kategori": "İş Hukuku & Rekabet Yasağı", "metin": "Kıdemli yapay zeka mühendisimiz aynı sektördeki doğrudan rakibimize geçmek üzere istifa etti. İş sözleşmesindeki 1 yıllık rekabet yasağı ve cezai şartı işletebilir miyiz?", "alanlar": "", "risk": "Hassas", "hassas": true, "uzmanlik": "İş Hukuku (TBK m. 444-447)", "atanan": "Av. Selin Karaca", "durum": "Bilgi bekliyor", "olusturma": "2026-10-23", "gerek_tarih": "2026-10-24", "taslak": "", "taslak_turu": "", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Kıdemli İş Hukuku Müşaviri", "cevap": "", "takip_notu": ""}, {"id": 7, "baslik": "Tedarikçi sözleşmesinde döviz kuru artışı gerekçesiyle TBK m. 138 uyarlama talebi", "soran_ad": "Kemal Demir", "bolum": "Satınalma", "kategori": "Borçlar Hukuku", "metin": "Erguvan Kimya ham madde sözleşmesinde döviz artışını gerekçe göstererek birim fiyatlara %40 zam talep ediyor ve aksi halde sevkiyatı durduracağını ihtar etti. Ne yapmalıyız?", "alanlar": "", "risk": "Yüksek", "hassas": false, "uzmanlik": "Borçlar Hukuku (Uyarlama Davası)", "atanan": "Av. Erhan Taşçı", "durum": "Taslak hazır", "olusturma": "2026-10-26", "gerek_tarih": "2026-10-31", "taslak": "Sayın İlgili,\n\nTacirler arasında basiretli iş adamı gibi davranma yükümlülüğü (TTK m. 18/2) uyarınca kur dalgalanmaları kural olarak tek başına sözleşmeyi askıya alma hakkı vermez. Sevkiyatın durdurulması temerrüt oluşturur. Karşı tarafa TBK m. 123 uyarınca aynen ifa ve gecikme cezası ihtarnamesi keşide edilmelidir.\n\nBilgilerinize sunarız.\nHukuk Müşavirliği", "taslak_turu": "Zekai Hukuki Görüş Taslağı", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Hukuk Müşaviri", "cevap": "", "takip_notu": ""}, {"id": 8, "baslik": "KVKK kapsamında eski bir çalışandan gelen kişisel verilerin silinmesi başvurusu", "soran_ad": "Merve Aydın", "bolum": "İnsan Kaynakları", "kategori": "Kişisel Verilerin Korunması (KVKK)", "metin": "3 yıl önce ayrılan eski çalışanımız KVKK m. 11 kapsamında şirketimizdeki tüm özlük dosyası, performans değerlendirmeleri ve e-posta kayıtlarının imha edilmesini talep ediyor. Hangi verileri saklamak zorundayız?", "alanlar": "", "risk": "Orta", "hassas": false, "uzmanlik": "KVKK ve İş Hukuku", "atanan": "Av. Selin Karaca", "durum": "Taslak hazır", "olusturma": "2026-10-24", "gerek_tarih": "2026-11-02", "taslak": "Sayın İlgili,\n\nİş Kanunu ve SGK mevzuatı uyarınca özlük dosyası ve bordro kayıtları 10 yıllık zamanaşımı süresi boyunca saklanmak zorundadır (TBK m. 146). Çalışana kanuni saklama yükümlülüğü gerekçe gösterilerek kısmi ret cevabı verilmeli; zorunlu olmayan pazarlama ve genel kayıtlar imha edilmelidir. 30 günlük yasal cevap süresine dikkat edilmelidir.\n\nBilgilerinize sunarız.\nHukuk Müşavirliği", "taslak_turu": "Zekai Hukuki Görüş Taslağı", "dayanilan_girdiler": "", "muhakeme_izi": "", "eksikler": "", "karar_cagrilari": "", "gonderen_kimlikle": "Hukuk Müşaviri", "cevap": "", "takip_notu": ""}], "girdiler": [{"id": 1, "baslik": "Sözleşmelerde sorumluluk tavanı ve KVKK sınırları", "metin": "Standart sözleşmelerimizde sorumluluk tavanı yıllık sözleşme bedelinin en az %100'ü olmalıdır. KVKK veri ihlalleri, fikri mülkiyet ve ağır kusur halleri tavana dahil edilemez.", "kategori": "Sözleşmeler", "onay_durumu": "Onaylı", "onay_tarihi": "2026-07-31", "gecerlilik_tarihi": "2027-07-26", "sahip": "Hukuk Müşavirliği", "is_birlikleriyle_paylas": true, "anahtar_kelimeler": "sorumluluk tavanı, tazminat, KVKK, TBK 115"}, {"id": 2, "baslik": "Satınalma sözleşmelerinde ödeme vadesi ve faiz", "metin": "Standart ödeme vademiz 60 gündür; satınalma birimi müzakere ile 45 güne kadar onay verebilir. 30 günden kısa vadeler Finans ve Hukuk onayı gerektirir.", "kategori": "Satınalma", "onay_durumu": "Onaylı", "onay_tarihi": "2026-08-30", "gecerlilik_tarihi": "2027-02-26", "sahip": "Hukuk Müşavirliği", "is_birlikleriyle_paylas": true, "anahtar_kelimeler": "ödeme, vade, temerrüt faizi, fatura"}]};
+</script>
+
+<script>
+/* ---------- DURUM (localStorage kalıcı) ---------- */
+const ANAHTAR="zekaiSuniLite";
+let DB;
+try{const s=localStorage.getItem(ANAHTAR);DB=s?JSON.parse(s):null;}catch(e){DB=null;}
+if(!DB||!DB.sozlesmeler||!DB.talepler){
+ DB={sozlesmeler:LITE_VERI.sozlesmeler.map(s=>({...s})),talepler:LITE_VERI.talepler.map(t=>({...t})),girdiler:LITE_VERI.girdiler.map(g=>({...g}))};
+ kaydet();
+}
+function kaydet(){try{localStorage.setItem(ANAHTAR,JSON.stringify(DB));}catch(e){}}
+function sifirla(){if(!confirm("Tüm veriler örnek haline dönecek. Emin misiniz?"))return;localStorage.removeItem(ANAHTAR);location.reload();}
+function esc(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function rozet(m,t){return "<span class='rozet "+t+"'>"+esc(m)+"</span>";}
+const AY=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+function trTarih(s){if(!s)return"—";const d=new Date(s+"T00:00:00Z");return d.getUTCDate()+" "+AY[d.getUTCMonth()]+" "+d.getUTCFullYear();}
+
+/* ---------- İHBAR GÖRÜNÜMÜ ---------- */
+function ihbarCiz(){
+ const bugun=new Date(new Date().toISOString().slice(0,10)+"T00:00:00Z");
+ let acik=0,kacan=0,inceleme=0;
+ const hesaplar=DB.sozlesmeler.map(s=>{const h=hesapla(s,bugun);if(h.rozet_turu==="sari"||h.rozet_turu==="kirmizi")acik++;if(h.rozet==="Kaçtı")kacan++;if(s.inceleme)inceleme++;return h;});
+ let html="<h1>Sözleşme İhbar Takvimi</h1><p class='ozet'>"+DB.sozlesmeler.length+" sözleşme · <b class='k'>"+acik+" ihtar penceresi açık</b> · "+kacan+" geciken · "+inceleme+" inceleme bekliyor</p>";
+ const gBas=new Date(bugun.getTime()-90*86400000),gSon=new Date(bugun.getTime()+550*86400000),toplam=gSon-gBas;
+ html+="<div class='cetvel'>"+(()=>{let c="";const d=new Date(bugun.getTime());d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+1);while(d<gSon){const p=((d-gBas)/toplam)*100;c+="<div class='cet-is' style='left:"+p+"%'>"+AY[d.getUTCMonth()]+"</div>";d.setUTCMonth(d.getUTCMonth()+1);}return c;})()+"<div class='cet-bugun' style='left:"+((bugun-gBas)/toplam*100)+"%'>Bugün</div></div>";
+ DB.sozlesmeler.forEach((s,i)=>{
+  const h=hesaplar[i];const b=h.band;
+  if(!b.pencere_bas){html+="<div class='satir' onclick='ihbarDetay("+i+")'><div><b class='ad'>"+esc(s.ad)+"</b><div class='alt'>"+esc(s.tur||"")+" · "+esc(s.karsi_taraf||"")+"</div></div><div class='bant-alan'></div><div><b>Tarih yok</b></div><div>"+rozet(h.rozet,h.rozet_turu)+"</div></div>";return;}
+  const bas=new Date(b.pencere_bas),son=new Date(b.pencere_son||b.bugun);const t=(son-bas)||1;
+  const pos=d=>Math.max(0,Math.min(100,((new Date(d)-bas)/t)*100));
+  let bantlar="";
+  if(b.donem_bas&&b.donem_son)bantlar+="<div class='bant donem' style='left:"+pos(b.donem_bas)+"%;width:"+Math.max(1,pos(b.donem_son)-pos(b.donem_bas))+"%'></div>";
+  if(b.ihbar_gunu&&b.donem_son)bantlar+="<div class='bant ihbar' style='left:"+pos(b.ihbar_gunu)+"%;width:"+Math.max(1,pos(b.donem_son)-pos(b.ihbar_gunu))+"%'></div>";
+  if(b.uzarsa_son)bantlar+="<div class='bant uzarsa' style='left:"+pos(b.donem_son)+"%;width:"+Math.max(1,pos(b.uzarsa_son)-pos(b.donem_son))+"%'></div>";
+  if(h.rozet==="Kaçtı"&&b.ihbar_gunu)bantlar+="<div class='bant gec' style='left:"+pos(b.ihbar_gunu)+"%;width:"+Math.max(1,pos(b.bugun)-pos(b.ihbar_gunu))+"%'></div>";
+  if(b.ihbar_gunu)bantlar+="<div class='s-gun' style='left:"+pos(b.ihbar_gunu)+"%'></div>";
+  bantlar+="<div class='s-bugun' style='left:"+pos(b.bugun)+"%'></div>";
+  html+="<div class='satir' onclick='ihbarDetay("+i+")'><div><b class='ad'>"+esc(s.ad)+"</b><div class='alt'>"+esc(s.tur||"")+" · "+esc(s.karsi_taraf||"")+"</div></div><div class='bant-alan'>"+bantlar+"</div><div><b>"+(h.son_ihbar_tarihi?trGun(h.son_ihbar_tarihi):"Belirsiz")+"</b><div class='alt'>"+(h.kimse_islem_yapmazsa||"—")+"</div></div><div>"+rozet(h.rozet,h.rozet_turu)+"</div></div>";
+ });
+ return html;
+}
+function ihbarDetay(i){
+ const s=DB.sozlesmeler[i];const h=hesapla(s,new Date(new Date().toISOString().slice(0,10)+"T00:00:00Z"));
+ let html="<div class='detay'><h3>"+esc(s.ad)+"</h3><div class='satir-b'><b>Dönem:</b> "+trTarih(h.donem_baslangici)+" – "+trTarih(h.donem_bitisi)+"</div><div class='satir-b'><b>Otomatik uzatma:</b> "+(s.otomatik_uzatma?"Evet — "+(s.uzatma_suresi_ay||s.sure_ay)+" ay":"Hayır")+"</div><div class='satir-b'><b>İhbar:</b> "+(s.ihbar_deger?s.ihbar_deger+" "+s.ihbar_birim:"Bulunamadı")+" · "+esc(s.ihbar_sekli||"—")+"</div><div class='satir-b'><b>Son ihbar günü:</b> "+(h.son_ihbar_tarihi?trGun(h.son_ihbar_tarihi):"—")+"</div><div class='satir-b'><b>Kimse işlem yapmazsa:</b> "+(h.kimse_islem_yapmazsa||"—")+"</div></div>";
+ (h.hukuki_not||[]).forEach(n=>{html+="<div class='not-kutu'>"+esc(n)+"</div>";});
+ if(s.kaynak_alinti)html+="<div class='detay'><div class='not-kutu mavi'><b>Sözleşmedeki ifade:</b><br><i>\""+esc(s.kaynak_alinti)+"\"</i><div class='alinti-kaynak'>m. "+esc(s.kaynak_madde||"—")+" · s. "+esc(s.kaynak_sayfa||"—")+" · "+esc(s.kaynak_dosya||"—")+"</div></div></div>";
+ html+="<div class='detay'><div class='satir-b'><b>Düzenle (düzeltme kayda geçer):</b></div><label>İhbar süresi<input id='dz-ihbar' type='number' value='"+(s.ihbar_deger||"")+"'></label><label>Birim<select id='dz-birim'>"+["gün","hafta","ay"].map(x=>"<option "+(s.ihbar_birim===x?"selected":"")+">"+x+"</option>").join("")+"</select></label><label>Şekli<select id='dz-sekli'>"+["Yazılı","Noter","KEP"].map(x=>"<option "+(s.ihbar_sekli===x?"selected":"")+">"+x+"</option>").join("")+"</select></label><button class='btn' style='margin-top:10px' onclick='duzeltKaydet("+i+")'>Düzeltmeyi kaydet</button> <button class='btn' style='background:#fff;color:var(--ink);border:1px solid var(--line)' onclick='sekme(\"ihbar\")'>Listeye dön</button></div>";
+ document.getElementById("gorunum").innerHTML=html;
+}
+function duzeltKaydet(i){
+ const s=DB.sozlesmeler[i];
+ s.ihbar_deger=+document.getElementById("dz-ihbar").value||null;
+ s.ihbar_birim=document.getElementById("dz-birim").value;
+ s.ihbar_sekli=document.getElementById("dz-sekli").value;
+ s.notlar=(s.notlar||"")+" | Kullanıcı düzeltti ("+new Date().toISOString().slice(0,10)+")";
+ kaydet();alert("Düzeltme kaydedildi (kalıcı — tarayıcınızda).");gorunumCiz();
+}
+
+/* ---------- HUKUK MASASI GÖRÜNÜMÜ ---------- */
+function masaCiz(){
+ let html="<h1>Hukuk Masası</h1><p class='ozet'>"+DB.talepler.length+" talep · "+DB.girdiler.filter(g=>g.onay_durumu==="Onaylı").length+" onaylı rehber kaydı</p>";
+ DB.talepler.forEach((t,i)=>{
+  const gec=t.gerek_tarih&&new Date(t.gerek_tarih)<new Date();
+  html+="<div class='satir' style='grid-template-columns:1fr auto' onclick='masaDetay("+i+")'><div><b class='ad'>"+esc(t.baslik)+"</b><div class='alt'>"+esc(t.kategori||"—")+" · "+esc(t.soran_ad||"—")+" · "+esc(t.bolum||"—")+"</div></div><div class='s-rozetler'>"+rozet(t.risk,t.risk==="Yüksek"||t.risk==="Acil"?"kirmizi":t.risk==="Orta"?"sari":"yesil")+" "+rozet(t.durum,t.durum==="Kapatıldı"?"yesil":t.durum==="Taslak hazır"?"mavi":"gri")+(t.hassas?" "+rozet("Hassas","mavi"):"")+(gec?" "+rozet("Gecikti","kirmizi"):"")+"</div></div>";
+ });
+ html+="<div class='not-kutu mavi'><b>Kurum rehber kayıtları (Guidance):</b><ul style='margin:6px 0 0 18px'>"+DB.girdiler.map(g=>"<li style='margin:4px 0'><b>"+esc(g.baslik)+"</b> — "+esc((g.metin||"").slice(0,120))+"… <i style='color:var(--muted)'>"+esc(g.onay_durumu||"")+"</i></li>").join("")+"</ul></div>";
+ return html;
+}
+function masaDetay(i){
+ const t=DB.talepler[i];
+ let html="<div class='detay'><h3>"+esc(t.baslik)+"</h3><div class='satir-b'>"+esc(t.metin||"")+"</div><div class='satir-b'><b>Risk:</b> "+esc(t.risk||"—")+" · <b>Durum:</b> "+esc(t.durum||"—")+" · <b>Uzmanlık:</b> "+esc(t.uzmanlik||"—")+" · <b>Atanan:</b> "+esc(t.atanan||"—")+"</div></div>";
+ if(t.hassas){html+="<div class='not-kutu kirmizi'>HASSAS TALEP — otomatik taslak üretilmez. İlgili kişiyle doğrudan iletişime geçin.</div>";}
+ else if(t.taslak){html+="<div class='detay'><div class='satir-b'><b>Taslak ("+esc(t.taslak_turu||"—")+"): </b></div>"+esc(t.taslak).replace(/\n/g,"<br>")+"</div>";}
+ html+="<div class='detay'><div class='satir-b'><b>Eksikler:</b> "+esc(t.eksikler||"—")+"</div><div class='satir-b'><b>Avukata bırakılan kararlar:</b> "+esc(t.karar_cagrilari||"—")+"</div></div>";
+ html+="<div class='detay'><div class='satir-b'><b>Cevap / Karar (boş veya kalıp cevap onaylanamaz):</b></div><textarea id='masa-cevap' rows='4'>"+esc(t.cevap||t.taslak||"")+"</textarea><div style='margin-top:10px;display:flex;gap:8px'><button class='btn' onclick='masaKapat("+i+")'>Onayla ve kapat</button><button class='btn' style='background:#fff;color:var(--ink);border:1px solid var(--line)' onclick='sekme(\"masa\")'>Listeye dön</button></div></div>";
+ document.getElementById("gorunum").innerHTML=html;
+}
+function masaKapat(i){
+ const cevap=document.getElementById("masa-cevap").value.trim();
+ if(!cevap){alert("Boş cevap onaylanamaz — önce metin yazın.");return;}
+ if(cevap.replace(/[.,\s]/g,"")==="Talebinizincelenmiştirveuygingörülmüştür"){alert("Kalıp (otomatik) cevap onaylanamaz — gerçek görüş metni gerekli.");return;}
+ DB.talepler[i].cevap=cevap;DB.talepler[i].durum="Kapatıldı";kaydet();gorunumCiz();
+}
+
+/* ---------- ortak ---------- */
+function sekme(ad){
+ document.getElementById("t-ihbar").className=ad==="ihbar"?"sekme secili":"sekme";
+ document.getElementById("t-masa").className=ad==="masa"?"sekme secili":"sekme";
+ gorunumCiz(ad);
+}
+let AKTIF="ihbar";
+function gorunumCiz(ad){AKTIF=ad||AKTIF;document.getElementById("gorunum").innerHTML=AKTIF==="ihbar"?ihbarCiz():masaCiz();}
+gorunumCiz("ihbar");
+</script>
+</body></html>
