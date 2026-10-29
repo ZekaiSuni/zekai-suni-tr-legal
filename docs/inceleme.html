@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zekai Suni — Tablo İnceleme</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
-<script src="../static/demo-veri.js"></script>
-<script src="../static/demo-kopru.js"></script>
+<title>Zekai Suni — Tablo İnceleme</title><link rel="stylesheet" href="styles.css"><script>window.ZEKAI_STATIK=true;</script>
+<script src="demo-veri.js"></script>
+<script src="demo-kopru.js"></script>
 </head><body>
 
 <div id="ornek-bant" class="ornek-bant">
@@ -205,7 +205,7 @@
 </div>
 
 <footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
-<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script src="nav.js"></script><script src="ortak.js"></script>
 <script>
 let V=null, SECILILER=new Set();
 
@@ -489,5 +489,5 @@ async function ornekGeriAl(){
 yukle();
 </script>
 <script>window.GIRIS_MODUL="inceleme";window.GIRIS_BASLIK="+ Belge ekle";window.GIRIS_ACIKLAMA="Sözleşmeleri tek tek yükleyin — Her belge otomatik analiz edilir ve tabloya satır olarak ekler. Eksik alanlar 'Bulunamadı + arama kapsamı' ile doldurulur (uydurma yok).";window.GIRIS_ALANLARI=[{key:"dosya",etiket:"Sözleşme dosyası (PDF/Word/metin)",tur:"dosya"}];window.GIRIS_GONDER=async (v,d)=>{ if(!d) throw new Error("Dosya seçin"); const fd=new FormData(); fd.append("dosya",d); const r=await fetch("/api/giris/inceleme/yeni-belge?inceleme_id=1",{method:"POST",body:fd}); if(!r.ok) throw new Error(await r.text()); const s=await r.json(); alert("Eklendi ("+s.cikarim_yontemi+" çıkarım). Eksik alanlar: "+s.eksik_alanlar.join(", ")); };window.GIRIS_GONDER_BASLIK="Belgeyi incele";</script>
-<script src="../static/giris.js"></script>
+<script src="giris.js"></script>
 </body></html>

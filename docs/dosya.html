@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zekai Suni — Dosya Panosu</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
-<script src="../static/demo-veri.js"></script>
-<script src="../static/demo-kopru.js"></script>
+<title>Zekai Suni — Dosya Panosu</title><link rel="stylesheet" href="styles.css"><script>window.ZEKAI_STATIK=true;</script>
+<script src="demo-veri.js"></script>
+<script src="demo-kopru.js"></script>
 </head><body>
 
 <div id="ornek-bant" class="ornek-bant">
@@ -93,7 +93,7 @@
 </div>
 
 <footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
-<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script src="nav.js"></script><script src="ortak.js"></script>
 <script>
 let V=null;
 let TAKVIM_OFFSET = 0; // Gün bazında kaydırma (+/-)
@@ -325,5 +325,5 @@ yukle();
 .kart-bas{font-weight:600;margin-bottom:5px}
 .kart-satir{color:var(--ikinci);margin-bottom:4px;line-height:1.4}
 </style><script>window.GIRIS_MODUL="dosya";window.GIRIS_BASLIK="+ Dosya ekle";window.GIRIS_ALANLARI=[{key:"ad",etiket:"Dosya adı"},{key:"musteri",etiket:"Müşteri"},{key:"alan_kodu",etiket:"Alan kodu",tur:"select",secenekler:["TİC","AİLE","İŞ","TAŞ","KAMU","CEZ"]},{key:"asama",etiket:"Aşama",tur:"select",secenekler:["Aşamasız","Yeni","Aktif","Başkalarını bekliyor","Kapatıldı"]},{key:"sonraki_islem",etiket:"Sonraki işlem"},{key:"sonraki_tarih",etiket:"Sonraki tarih",tur:"date"},{key:"sahibi",etiket:"Sahibi"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/dosya/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Dosyayı ekle";</script>
-<script src="../static/giris.js"></script>
+<script src="giris.js"></script>
 </body></html>

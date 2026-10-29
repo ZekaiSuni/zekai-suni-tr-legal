@@ -1,10 +1,10 @@
 ﻿<!DOCTYPE html>
 <html lang="tr"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zekai Suni — Hukuk Masası & Hukuki Görüş</title><link rel="stylesheet" href="../static/styles.css">
-<script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
-<script src="../static/demo-veri.js"></script>
-<script src="../static/demo-kopru.js"></script>
+<title>Zekai Suni — Hukuk Masası & Hukuki Görüş</title><link rel="stylesheet" href="styles.css">
+<script>window.ZEKAI_STATIK=true;</script>
+<script src="demo-veri.js"></script>
+<script src="demo-kopru.js"></script>
 </head><body>
 
 <div id="ornek-bant" class="ornek-bant">
@@ -127,7 +127,7 @@
   <div class="cekmece-icerik" id="d-icerik"></div></aside>
 
 <footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
-<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script src="nav.js"></script><script src="ortak.js"></script>
 <script>
 let V=null, FILTRE="tumu", T_ID=null;
 
@@ -348,5 +348,5 @@ async function ornekGeriAl(){
 yukle();
 </script>
 <script>window.GIRIS_MODUL="masa";window.GIRIS_BASLIK="+ Yeni talep";window.GIRIS_ACIKLAMA="İş biriminden gelen talebi kaydedin. Hassas işaretlerseniz AI taslak ÜRETMEZ. Diğerlerinde Hukuki görüş kayıtlarıyla eşleşen demo taslak otomatik üretilir (gerçek Claude için API anahtarı gerekir).";window.GIRIS_ALANLARI=[{key:"baslik",etiket:"Talep başlığı"},{key:"metin",etiket:"Talep metni",tur:"textarea"},{key:"soran_ad",etiket:"Talep sahibi"},{key:"bolum",etiket:"Birim",tur:"select",secenekler:["Satınalma","Satış","Pazarlama","Finans","İK","Teknoloji"]},{key:"kategori",etiket:"Kategori"},{key:"risk",etiket:"Risk",tur:"select",secenekler:["Düşük","Orta","Yüksek","Acil"]},{key:"hassas",etiket:"Hassas (yapay zeka taslak üretmez)",tur:"checkbox"},{key:"gerek_tarih",etiket:"Gerekli tarih",tur:"date"}];window.GIRIS_GONDER=async (v)=>{ const r=await api("/api/giris/masa/talep/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); alert(r.taslak_uretildi?"Talep kaydedildi — demo taslak üretildi (avukat onayı bekler).":"Talep kaydedildi (hassas — taslak üretilmedi)."); };window.GIRIS_GONDER_BASLIK="Talebi kaydet";</script>
-<script src="../static/giris.js"></script>
+<script src="giris.js"></script>
 </body></html>

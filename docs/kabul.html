@@ -1,8 +1,8 @@
 ﻿<!DOCTYPE html>
 <html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zekai Suni — Müvekkil Kabulü</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
-<script src="../static/demo-veri.js"></script>
-<script src="../static/demo-kopru.js"></script>
+<title>Zekai Suni — Müvekkil Kabulü</title><link rel="stylesheet" href="styles.css"><script>window.ZEKAI_STATIK=true;</script>
+<script src="demo-veri.js"></script>
+<script src="demo-kopru.js"></script>
 </head><body>
 
 <div id="ornek-bant" class="ornek-bant">
@@ -69,7 +69,7 @@
 </div>
 
 <footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
-<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script src="nav.js"></script><script src="ortak.js"></script>
 <script>
 let V=null;
 function modalAc(id){ document.getElementById(id).classList.add('acik'); }
@@ -190,5 +190,5 @@ yukle();
 .kart-bas{font-weight:600;margin-bottom:3px}
 .kart-satir{color:var(--ikinci);line-height:1.4}
 </style><script>window.GIRIS_MODUL="kabul";window.GIRIS_BASLIK="+ Yeni başvuru";window.GIRIS_ACIKLAMA="Yeni müvekkil başvurusu ekleyin; çatışma taramasını kart üzerinden çalıştırın. İsterseniz çatışma indeksine de kayıt ekleyin.";window.GIRIS_ALANLARI=[{key:"ad",etiket:"Başvuru sahibi"},{key:"konu_turu",etiket:"Konu türü",tur:"select",secenekler:["İş hukuku","Aile","Miras","Gayrimenkul","Ticari ihtilaflar","Kişisel yaralanma","Ceza savunma","Sözleşme"]},{key:"tek_satir",etiket:"Tek cümlede"},{key:"iliskili",etiket:"Dahil olan herkes (çıkar çatışması için)"},{key:"iletisim",etiket:"İletişim"},{key:"kaynak",etiket:"Bizi nereden buldular"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/kabul/basvuru/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...v,asama:"Çatışma"})}); };window.GIRIS_GONDER_BASLIK="Başvuruyu ekle";</script>
-<script src="../static/giris.js"></script>
+<script src="giris.js"></script>
 </body></html>

@@ -1,14 +1,14 @@
 <!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zekai Suni — Şirket Uyum Takvimi</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
-<script src="../static/demo-veri.js"></script>
-<script src="../static/demo-kopru.js"></script>
+<title>Zekai Suni — Şirket Uyum Takvimi</title><link rel="stylesheet" href="styles.css"><script>window.ZEKAI_STATIK=true;</script>
+<script src="demo-veri.js"></script>
+<script src="demo-kopru.js"></script>
 </head><body>
 <header class="ust-bar"><div class="marka">Şirket Uyum Takvimi <span class="cipy ornek">Örnek veri</span></div></header>
 <section class="baslik-satir"><div><h1>Şirketler uyum yükümlülükleri</h1>
   <p class="ozet">Genel kurul, sicil, VERBİS, İYS — her yükümlülüğün hukuki dayanağı kayıtlı.</p></div></section>
 <main id="liste"></main>
 <footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
-<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script src="nav.js"></script><script src="ortak.js"></script>
 <script>let V=null;
 async function yukle(){ V=await api("/api/uyum"); ciz(); }
 function ciz(){
@@ -25,5 +25,5 @@ function ciz(){
 }
 yukle();
 </script><script>window.GIRIS_MODUL="uyum";window.GIRIS_BASLIK="+ Yükümlülük ekle";window.GIRIS_ACIKLAMA="Şirket uyum yükümlülüğü ekleyin (genel kurul, VERBİS, İYS…). Hukuki dayanak kolonu kayda geçer.";window.GIRIS_ALANLARI=[{key:"sirket",etiket:"Şirket"},{key:"yukumluluk",etiket:"Yükümlülük"},{key:"periyot",etiket:"Periyot",tur:"select",secenekler:["Yıllık","Çeyreklik","Aylık","Tek seferlik"]},{key:"son_tarih",etiket:"Son tarih",tur:"date"},{key:"sorumlu",etiket:"Sorumlu"},{key:"kaynak_hukum",etiket:"Hukuki dayanak",ornek:"TTK m. 416"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/uyum/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Yükümlülük ekle";</script>
-<script src="../static/giris.js"></script>
+<script src="giris.js"></script>
 </body></html>

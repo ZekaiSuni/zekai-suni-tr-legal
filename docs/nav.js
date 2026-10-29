@@ -25,13 +25,13 @@
   nav.className = "yan-menu";
   nav.innerHTML = `
     <div class="nav-marka"><span class="logo">◐</span> <b>Zekai Suni</b><span class="cipy ornek">TR</span></div>
-    ${MODULLER.map(m=>`<a class="nav-oge ${location.href.includes(m.sayfa)|| (mevcut==="index.html"&&m.id==="ihbar") ? "secili":""}" href="/static/${m.sayfa}">
+    ${MODULLER.map(m=>`<a class="nav-oge ${location.href.includes(m.sayfa)|| (mevcut==="index.html"&&m.id==="ihbar") ? "secili":""}" href="${m.sayfa}">
        <span class="nav-ikon">${m.ikon}</span>${m.ad}</a>`).join("")}
     <div class="nav-alt">
       <button type="button" class="nav-btn-ayar" onclick="window.zekaiModelAyarAc()">⚙ Model Ayarları</button>
       <div style="display:flex;gap:10px;margin-top:6px">
-        <a href="/api/export.ics">⤓ Takvim</a>
-        <a href="/docs" target="_blank">API Belgeleri</a>
+        <a href="tanitim.html" style="color:var(--soluk);text-decoration:none">📖 Proje Tanıtımı</a>
+        <a href="https://github.com/ZekaiSuni/zekai-suni-tr-legal" target="_blank" style="color:var(--soluk);text-decoration:none">GitHub Deposu</a>
       </div>
     </div>`;
   document.body.prepend(nav);

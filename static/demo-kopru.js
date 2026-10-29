@@ -1,7 +1,8 @@
-/* STATİK DEMO KÖPRÜSÜ v2 — GitHub Pages'te tam interaktif çalışma modu.
-   - /api/* GET çağrıları gömülü örnek veriden karşılanır.
-   - Yazma işlemleri tarayıcının localStorage'ına KAYDEDİLİR (yenilemede kalır).
-   - "Demo verilerini sıfırla" ile başlangıç durumuna dönülür. */
+/* STATİK DEMO KÖPRÜSÜ v3 — GitHub Pages'te tam interaktif çalışma modu.
+   - Tüm /api/* istekleri yakalanır (GET, POST).
+   - Veriler localStorage'a kaydedilir (tarayıcı yenilense de silinmez).
+   - "Demo verilerini sıfırla" butonuyla ilk fabrika ayarlarına dönülür.
+   - İhbar ekleme, karar verme, onaylama, arama, filtreleme ve .csv/.json/.ics indirme canlı çalışır. */
 (function(){
   const ANAHTAR = "zekaiDemoVeri";
 
@@ -28,6 +29,8 @@
     return L2.find(x => x.id === id);
   }
 
+  const TATILLER_VERISI = {"tatiller": [{"tarih": "2026-01-01", "ad": "Yılbaşı", "tur": "tam"}, {"tarih": "2026-03-20", "ad": "Ramazan Bayramı 1. gün", "tur": "tam"}, {"tarih": "2026-03-21", "ad": "Hafta sonu", "tur": "tam"}, {"tarih": "2026-03-22", "ad": "Hafta sonu", "tur": "tam"}, {"tarih": "2026-04-23", "ad": "Ulusal Egemenlik ve Çocuk Bayramı", "tur": "tam"}, {"tarih": "2026-05-01", "ad": "Emek ve Dayanışma Günü", "tur": "tam"}, {"tarih": "2026-05-19", "ad": "19 Mayıs / Kurban 4. gün (yaklaşık)", "tur": "tam"}, {"tarih": "2026-05-27", "ad": "Kurban Bayramı 1. gün", "tur": "tam"}, {"tarih": "2026-05-28", "ad": "Kurban Bayramı 2. gün", "tur": "tam"}, {"tarih": "2026-05-29", "ad": "Kurban Bayramı 3. gün", "tur": "tam"}, {"tarih": "2026-05-30", "ad": "Hafta sonu", "tur": "tam"}, {"tarih": "2026-07-15", "ad": "Demokrasi ve Millî Birlik Günü", "tur": "tam"}, {"tarih": "2026-08-30", "ad": "Hafta sonu", "tur": "tam"}, {"tarih": "2026-10-29", "ad": "Cumhuriyet Bayramı", "tur": "tam"}, {"tarih": "2026-03-19", "ad": "Bayram arifesi (yarım gün)", "tur": "yarim"}, {"tarih": "2026-05-26", "ad": "Bayram arifesi (yarım gün)", "tur": "yarim"}, {"tarih": "2027-01-01", "ad": "Yılbaşı", "tur": "tam"}, {"tarih": "2027-03-09", "ad": "Ramazan Bayramı 1. gün", "tur": "tam"}, {"tarih": "2027-03-10", "ad": "Ramazan Bayramı 2. gün", "tur": "tam"}, {"tarih": "2027-03-11", "ad": "Ramazan Bayramı 3. gün", "tur": "tam"}, {"tarih": "2027-04-23", "ad": "Ulusal Egemenlik ve Çocuk Bayramı", "tur": "tam"}, {"tarih": "2027-05-01", "ad": "Hafta sonu", "tur": "tam"}, {"tarih": "2027-05-16", "ad": "Hafta sonu", "tur": "tam"}, {"tarih": "2027-05-17", "ad": "Kurban Bayramı 2. gün (yaklaşık)", "tur": "tam"}, {"tarih": "2027-05-18", "ad": "Kurban Bayramı 3. gün (yaklaşık)", "tur": "tam"}, {"tarih": "2027-05-19", "ad": "19 Mayıs / Kurban 4. gün", "tur": "tam"}, {"tarih": "2027-07-15", "ad": "Demokrasi ve Millî Birlik Günü", "tur": "tam"}, {"tarih": "2027-08-30", "ad": "Zafer Bayramı", "tur": "tam"}, {"tarih": "2027-10-29", "ad": "Cumhuriyet Bayramı", "tur": "tam"}, {"tarih": "2027-03-08", "ad": "Bayram arifesi (yarım gün)", "tur": "yarim"}], "yaklasik_not": "2027 dini bayram tarihleri yaklaşiktir — Resmî Gazete teyidi öncesi motor yalnız bilgi notu üretir, tarih değiştirmez."};
+
   const GETLER = [
     [/^\/api\/sozlesmeler$/, () => L("sozlesmeler")],
     [/^\/api\/playbook$/, () => L("playbook")],
@@ -47,9 +50,11 @@
     [/^\/api\/uyum$/, () => L("uyum")],
     [/^\/api\/portfoy$/, () => L("portfoy")],
     [/^\/api\/matris$/, () => L("matris")],
+    [/^\/api\/tatiller$/, () => TATILLER_VERISI],
+    [/^\/api\/promptlar$/, () => ({promptlar:[], mesaj:"Statik demo modu: promptlar repodadır."})],
     [/^\/api\/ayarlar\/model$/, () => ({saglayici:"demo", model:"yerel-kural-motoru",
         base_url:"", api_key_mevcut:false, api_key_maskeli:"Yok",
-        desteklenenler:["claude","ollama"]})],
+        desteklenenler:["claude","ollama","demo"]})],
   ];
 
   const YAZILAR = [
@@ -142,21 +147,6 @@
 
     const metot = ((opts && opts.method) || "GET").toUpperCase();
 
-    if(u.includes("/api/export")){
-      return Promise.resolve(jsonYanit({mesaj:"Statik demoda dışa aktarım kapalıdır — tam sürüm için repoyu çalıştırın."}, 501));
-    }
-    if(u.includes("/api/promptlar")){
-      return Promise.resolve(jsonYanit({promptlar:[], mesaj:"Statik demoda prompt görüntüleyici kapalıdır."}, 200));
-    }
-    if(u.includes("/api/tatiller")){
-      return Promise.resolve(jsonYanit({tatiller:[], yaklasik_not:"Statik demo — tatil takvimi tam sürümdedir."}, 200));
-    }
-    if(u.includes("/api/ayarlar/model")){
-      return Promise.resolve(jsonYanit({saglayici:"demo", model:"yerel-kural-motoru",
-        base_url:"", api_key_mevcut:false, api_key_maskeli:"Yok",
-        desteklenenler:["claude","ollama"]}));
-    }
-
     if(metot === "GET"){
       for(const [kalip, ureten] of GETLER){
         if(kalip.test(u)) return Promise.resolve(jsonYanit(ureten()));
@@ -166,11 +156,115 @@
         const k = listedenBul("sozlesmeler", "kayitlar", +m[1]);
         return k ? Promise.resolve(jsonYanit(k)) : Promise.resolve(jsonYanit({mesaj:"bulunamadı"}, 404));
       }
-      return Promise.resolve(jsonYanit({mesaj:"Statik demo: uç bulunamadı"}, 404));
+      return Promise.resolve(jsonYanit({mesaj:"Statik demo: uç simüle edildi"}, 200));
     }
 
     let govde = {};
     try { govde = JSON.parse((opts && opts.body) || "{}"); } catch(e){}
+
+    // Sözleşme Ekleme (İhbar Takvimi)
+    if(u === "/api/sozlesmeler/ekle"){
+      const szState = state.sozlesmeler = state.sozlesmeler || {kayitlar:[], ozet:{}};
+      const kayitlar = szState.kayitlar = szState.kayitlar || [];
+      const yeniId = 1 + kayitlar.reduce((mx, k) => Math.max(mx, (k.sozlesme && k.sozlesme.id) || 0), 0);
+      
+      let bitis = null;
+      let sonIhbar = null;
+      let kalanGun = 60;
+      let rozet = "Açık";
+      let rozetTuru = "sari";
+      
+      if(govde.baslangic){
+        const basD = new Date(govde.baslangic);
+        if(!isNaN(basD)){
+          const sureAy = govde.sure_ay || 12;
+          basD.setMonth(basD.getMonth() + sureAy);
+          bitis = basD.toISOString().slice(0, 10);
+          
+          const ihbarGun = govde.ihbar_deger || 30;
+          basD.setDate(basD.getDate() - ihbarGun);
+          sonIhbar = basD.toISOString().slice(0, 10);
+          
+          const bugun = new Date();
+          kalanGun = Math.round((basD - bugun) / (1000 * 60 * 60 * 24));
+          if(kalanGun < 0){ rozet = "Kaçtı"; rozetTuru = "kirmizi"; }
+          else if(kalanGun <= 30){ rozet = "İhbar zamanı"; rozetTuru = "sari"; }
+          else { rozet = "Açık"; rozetTuru = "yesil"; }
+        }
+      }
+      
+      const yeniKayit = {
+        sozlesme: {
+          id: yeniId,
+          ad: govde.ad || "Yeni Sözleşme",
+          karsi_taraf: govde.karsi_taraf || "Belirtilmedi",
+          tur: govde.tur || "Hizmet",
+          dosya_adi: "",
+          baslangic: govde.baslangic || null,
+          sure_ay: govde.sure_ay || 12,
+          otomatik_uzatma: !!govde.otomatik_uzatma,
+          uzatma_suresi_ay: govde.uzatma_suresi_ay || null,
+          uzatma_artis_yuzdesi: govde.uzatma_artis_yuzdesi || null,
+          ihbar_deger: govde.ihbar_deger || 30,
+          ihbar_birim: govde.ihbar_birim || "gün",
+          ihbar_sekli: govde.ihbar_sekli || "Yazılı",
+          fiyat_yillik: govde.fiyat_yillik || null,
+          para_birimi: "TL",
+          sahibi: govde.sahibi || "Avukat",
+          inceleme: false,
+          duzeltilmis: false,
+          cikarim_yontemi: "elle",
+          notlar: govde.notlar || "Arayüzden eklendi."
+        },
+        takvim: {
+          donem_baslangici: govde.baslangic || null,
+          donem_bitisi: bitis,
+          son_ihbar_tarihi: sonIhbar,
+          son_ihbar_tatil_mi: false,
+          tatil_adi: null,
+          onerilen_is_gunu: null,
+          kalan_gun: kalanGun,
+          rozet: rozet,
+          rozet_turu: rozetTuru,
+          kimse_islem_yapmazsa: govde.otomatik_uzatma ? "Sözleşme süresi kadar kendiliğinden uzar" : "Kendiliğinden sona erer",
+          hukuki_notlar: ["Kullanıcı tarafından elle oluşturuldu."],
+          band: {
+            pencere_bas: govde.baslangic || "2026-01-01",
+            pencere_son: bitis || "2027-01-01",
+            donem_bas: govde.baslangic || "2026-01-01",
+            donem_son: bitis || "2027-01-01",
+            ihbar_gunu: sonIhbar,
+            bugun: new Date().toISOString().slice(0, 10),
+            uzarsa_son: bitis
+          }
+        }
+      };
+      
+      kayitlar.unshift(yeniKayit);
+      if(szState.ozet) szState.ozet.sozlesme_sayisi = kayitlar.length;
+      kaydet();
+      return Promise.resolve(jsonYanit({durum:"ok", id: yeniId}));
+    }
+
+    // Dosya analizi (Simüle çıkarım)
+    if(u.includes("/api/analiz") || u.includes("/api/evrak-yukle-ve-isle")){
+      return Promise.resolve(jsonYanit({
+        durum: "ok",
+        ad: "Yüklenen Belge Analizi",
+        karsi_taraf: "Örnek Karşı Taraf Ltd. Şti.",
+        tur: "Hizmet",
+        baslangic: "2026-06-01",
+        sure_ay: 12,
+        otomatik_uzatma: true,
+        uzatma_suresi_ay: 12,
+        ihbar_deger: 30,
+        ihbar_birim: "gün",
+        ihbar_sekli: "Noter",
+        fiyat_yillik: 250000,
+        alinti: "İşbu sözleşme 01.06.2026 tarihinde yürürlüğe girer ve 1 yıl geçerlidir. Taraflardan biri 30 gün önceden noter kanalıyla bildirmedikçe birer yıl uzar.",
+        notlar: "Demo çıkarım tamamlandı (kanıt alıntısıyla teyit edildi)."
+      }));
+    }
 
     for(const [kalip, islev] of YAZILAR){
       const m = u.match(kalip);
@@ -179,28 +273,90 @@
     for(const [kalip, kod, listeKey, kurucu] of EKLE){
       if(kalip.test(u)){
         const yeniKayit = kurucu(govde);
+        if(!state[kod]) state[kod] = {};
+        if(!state[kod][listeKey]) state[kod][listeKey] = [];
         state[kod][listeKey].push(yeniKayit);
         kaydet();
         return Promise.resolve(jsonYanit({durum:"ok", id: yeniKayit.id, demo_kalici: true}));
       }
     }
     kaydet();
-    return Promise.resolve(jsonYanit({durum:"ok", demo:true,
-      mesaj:"Statik demo: işlem simüle edildi."}));
+    return Promise.resolve(jsonYanit({durum:"ok", demo:true, mesaj:"İşlem demo ortamına kaydedildi."}));
   };
 
+  // İndirme ve Dışa Aktarma Butonlarını Bağlama
   document.addEventListener("DOMContentLoaded", ()=>{
     if(!window.ZEKAI_STATIK) return;
+
+    // Üst Demo Bildirim Bandı
     const bant = document.createElement("div");
-    bant.style.cssText = "background:#141414;color:#ffd86b;padding:6px 16px;font-size:12.5px;text-align:center";
-    bant.innerHTML = "STATİK DEMO — veriler tarayıcınıza kaydedilir (sunucuya gitmez). " +
-      '<button id="zk-demo-sifirla" style="background:#ffd86b;color:#141414;border:none;border-radius:4px;padding:1px 8px;font-size:11px;cursor:pointer">Demo verilerini sıfırla</button>';
-    const feragat = document.querySelector(".feragat");
-    feragat ? feragat.before(bant) : document.body.prepend(bant);
-    const btn = document.getElementById("zk-demo-sifirla");
-    if(btn) btn.addEventListener("click", ()=>{
-      if(!confirm("Demo verileriniz sıfırlanacak (örnek veri geri gelir). Emin misiniz?")) return;
+    bant.style.cssText = "background:#18181b;color:#fef08a;padding:8px 16px;font-size:13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #27272a;position:sticky;top:0;z-index:9999";
+    bant.innerHTML = `
+      <div><b>◐ CANLI DEMO SÜRÜMÜ:</b> Tüm işlemler tarayıcınızın hafızasında (localStorage) güvenle saklanır. Herhangi bir sunucuya veri gitmez.</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <a href="tanitim.html" style="color:#93c5fd;text-decoration:none;font-weight:600">📖 Dokümantasyon</a>
+        <button id="zk-demo-sifirla" style="background:#fef08a;color:#18181b;border:none;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;cursor:pointer">Demo Verilerini Sıfırla</button>
+      </div>`;
+    document.body.prepend(bant);
+
+    const btnSifirla = document.getElementById("zk-demo-sifirla");
+    if(btnSifirla) btnSifirla.addEventListener("click", ()=>{
+      if(!confirm("Demo verileriniz sıfırlanacak ve fabrika ayarlarına dönülecektir. Emin misiniz?")) return;
       localStorage.removeItem(ANAHTAR); location.reload();
     });
+
+    // İhbar Takvimi İndirme Butonları (.json, .csv, .ics)
+    const btnJson = document.getElementById("btn-json");
+    if(btnJson) {
+      btnJson.onclick = (e) => {
+        e.preventDefault();
+        const veri = state.sozlesmeler || {};
+        const blob = new Blob([JSON.stringify(veri, null, 2)], {type: "application/json;charset=utf-8"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "zekai-ihbar-takvimi.json";
+        a.click();
+      };
+    }
+    const btnCsv = document.getElementById("btn-csv");
+    if(btnCsv) {
+      btnCsv.onclick = (e) => {
+        e.preventDefault();
+        const kayitlar = (state.sozlesmeler && state.sozlesmeler.kayitlar) || [];
+        let csv = "ID;Sözleşme Adı;Karşı Taraf;Tür;Başlangıç;Süre (Ay);Son İhbar Günü;Kalan Gün;Rozet\n";
+        kayitlar.forEach(k => {
+          const s = k.sozlesme || {};
+          const t = k.takvim || {};
+          csv += `${s.id || ""};"${(s.ad||"").replace(/"/g, '""')}";"${(s.karsi_taraf||"").replace(/"/g, '""')}";${s.tur||""};${s.baslangic||""};${s.sure_ay||""};${t.son_ihbar_tarihi||""};${t.kalan_gun!=null?t.kalan_gun:""};${t.rozet||""}\n`;
+        });
+        const blob = new Blob(["\ufeff" + csv], {type: "text/csv;charset=utf-8"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "zekai-ihbar-takvimi.csv";
+        a.click();
+      };
+    }
+    const btnIcs = document.getElementById("btn-ics");
+    if(btnIcs) {
+      btnIcs.onclick = (e) => {
+        e.preventDefault();
+        const kayitlar = (state.sozlesmeler && state.sozlesmeler.kayitlar) || [];
+        let ics = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Zekai Suni//TR Legal v1.0//TR\n";
+        kayitlar.forEach(k => {
+          const s = k.sozlesme || {};
+          const t = k.takvim || {};
+          if(t.son_ihbar_tarihi) {
+            const dStr = t.son_ihbar_tarihi.replace(/-/g, "");
+            ics += `BEGIN:VEVENT\nSUMMARY:İhbar Son Günü: ${s.ad || "Sözleşme"}\nDESCRIPTION:${s.karsi_taraf || ""} ihbar son tarihi.\nDTSTART;VALUE=DATE:${dStr}\nDTEND;VALUE=DATE:${dStr}\nEND:VEVENT\n`;
+          }
+        });
+        ics += "END:VCALENDAR";
+        const blob = new Blob([ics], {type: "text/calendar;charset=utf-8"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "zekai-ihbarlar.ics";
+        a.click();
+      };
+    }
   });
 })();
