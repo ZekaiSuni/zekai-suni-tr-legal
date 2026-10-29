@@ -24,12 +24,12 @@ Delil İbrazı Kaydı · Duruşma & UYAP Takip Duvarı · Dava Portföyü · Dı
 
 ## Kurulum
 
-```
+```bash
 pip install -r requirements.txt
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8765
+python -m uvicorn app.main:app --reload
 ```
 
-Tarayıcı: `http://127.0.0.1:8765` · Testler: `pytest tests/ -q`
+Tarayıcı: `http://localhost:8000` (Port çakışması durumunda: `--port 8080`) · Testler: `pytest tests/ -q`
 
 ## Yapay zeka modu & Harcama Güvenliği
 

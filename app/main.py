@@ -1,7 +1,7 @@
 """
 Zekai Suni — İhbar Takvimi (v0.1)
 FastAPI sunucu: statik arayüz + API.
-Çalıştırma:  python -m uvicorn app.main:app --host 127.0.0.1 --port 8765
+Çalıştırma:  python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 """
 from __future__ import annotations
 

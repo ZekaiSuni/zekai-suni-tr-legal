@@ -81,8 +81,8 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--muted);font-s
   <h2>Çalıştırma</h2>
   <div class="nasil">
     <pre>pip install -r requirements.txt
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8765</pre>
-    Tarayıcıda: <code>http://127.0.0.1:8765</code> · Testler: <code>pytest tests/ -q</code>
+python -m uvicorn app.main:app --reload</pre>
+    Tarayıcıda: <code>http://localhost:8000</code> (veya <code>--port 8080</code>) · Testler: <code>pytest tests/ -q</code>
   </div>
 
   <div class="kapsul">
