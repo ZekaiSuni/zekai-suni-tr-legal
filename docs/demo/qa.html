@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Şirket Devri Soru-Cevap</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
+<script src="../static/demo-veri.js"></script>
+<script src="../static/demo-kopru.js"></script>
+</head><body>
+<header class="ust-bar"><div class="marka">Şirket Devri Soru-Cevap <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag"></div></header>
+<section class="baslik-satir"><div><h1>Meridyen Projesi — alıcı soruları <span class="cipy ornek">Örnek veri</span></h1>
+  <p class="ozet">Her soru taslak ve hukuk onayından geçer; <b>yalnız onaylı metin dışarı çıkar</b>. 4 alıcı · açık soruların sayısı üstte.</p></div>
+  <div class="baslik-sag"><span class="cipy" id="kural-cipi">Onaysız metin dışarı çıkamaz</span></div></section>
+<main id="liste"></main>
+<aside id="cekmecem" class="cekmece gizli"><div class="cekmece-bas">
+  <div><div class="cekmece-alt-baslik" id="d-baslik-alt"></div><h2 id="d-baslik"></h2></div>
+  <button class="kapat" onclick="cekmeceKapat()">×</button></div><div class="cekmece-icerik" id="d-icerik"></div></aside>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script>
+let V=null;
+async function yukle(){ V = await api("/api/qa"); ciz(); }
+function ciz(){
+  const liste = document.getElementById("liste");
+  liste.innerHTML = V.sorular.map(s=>{
+    const a = V.alicilar.find(x=>x.id===s.alici_id)||{};
+    return `<div class="sozlesme-satir" style="grid-template-columns:80px 1fr 200px 170px;cursor:pointer" onclick="detay(${s.id})">
+      <div class="s-ad">${s.ref}</div>
+      <div><div class="s-ad" style="font-weight:500">${s.metin}</div><div class="s-alt">${s.kategori}</div></div>
+      <div class="s-islem">${a.ad||""}<br><span style="color:var(--ikinci)">${s.kimlere==="Tüm alıcılar"?"Tüm teklif verenler (anonim)":"Tek alıcı"}</span></div>
+      <div class="s-son-gun">${durumRozet(s.durum)}${s.capraz_ifsa_uyari?'<div class="mini-cipy mini-inceleme" style="margin-top:4px">Çapraz ifşa kontrolü</div>':""}</div></div>`;
+  }).join("");
+}
+function detay(id){
+  const s = V.sorular.find(x=>x.id===id);
+  const a = V.alicilar.find(x=>x.id===s.alici_id)||{};
+  document.getElementById("d-baslik-alt").textContent = `${s.ref} · ${a.ad||""}`;
+  document.getElementById("d-baslik").textContent = s.kategori||"Soru";
+  let html = `<div class="bolum">${durumRozet(s.durum)} ${durumRozet(s.kimlere==="Tüm alıcılar"?"Tüm alıcılar":"Tek alıcı")}
+    <div style="margin-top:8px;font-size:13px"><b>Alıcının sorusu:</b> ${esc(s.metin)}</div></div>`;
+  if(s.taslak) html += `<div class="bolum"><div class="bolum-bas">Taslak (veri odasından atıfla)</div>
+    <div class="alinti-kutu" style="font-family:inherit">${esc(s.taslak).replace(/\n/g,"<br>")}</div>
+    <div class="alinti-kaynak">Kaynak: ${s.kaynak_belge||"—"} ${s.kaynak_konum?"· "+s.kaynak_konum:""}${s.onaylayan?" · Onaylayan: "+s.onaylayan:""}</div></div>`;
+  else html += `<div class="bolum"><div class="alinti-kutu" style="color:var(--ikinci)">Henüz taslak yok — "Taslak üret" istemi veri odasındaki belgelere atıfla taslak hazırlar; boşluklar [Sorumlu onaylasın: …] biçiminde bırakılır.</div></div>`;
+  if(s.capraz_ifsa_uyari) html += `<div class="not-kutu">⚠ <b>Çapraz alıcı ifşa uyarısı:</b> Başka bir alıcıya özel yazılmış bir cevap görüldü — bu cevabın metninde o alıcıya ait hiçbir bilginin taşınp taşımadığını kontrol edin.</div>`;
+  html += `<div class="bolum"><div class="bolum-bas">Cevap türü seçenekleri</div><div style="font-size:12px;color:var(--ikinci)">Anlatım · Belgeye bakınız · Veri odasına belge eklendi · Uygulanamaz · Sonraki turda · Yönetim sunumunda · Reddedildi · Yalnız temiz ekip (Clean team)</div></div>`;
+  html += `<div class="bolum"><div class="karar-butonlar">
+    ${s.durum!=="Onaylandı"&&s.durum!=="Yayınlandı"?`<button class="birincil" onclick="islem(${s.id},'onayla')">Hukuk onayı ver</button>`:""}
+    ${s.durum==="Onaylandı"?`<button class="birincil" onclick="islem(${s.id},'yayinla')">Yayınla (veri odasına)</button>`:""}
+  </div>
+  <div class="alinti-kaynak">"Yayınla" yalnız onaylı cevapta açılır — kapı onaya kilitlidir.</div></div>`;
+  cekmeceAc(html);
+}
+async function islem(id, islem){
+  await api("/api/qa/karar", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id, islem})});
+  yukle(); detay(id);
+}
+yukle();
+</script><script>window.GIRIS_MODUL="qa";window.GIRIS_BASLIK="+ Soru ekle";window.GIRIS_ACIKLAMA="Alıcı sorusunu manuel ekleyin. Taslak üretimi veri odası belgeleriyle yapılır; onay kapısı aynen geçerlidir.";window.GIRIS_ALANLARI=[{key:"ref",etiket:"Referans (ör. E-021)"},{key:"alici_id",etiket:"Alıcı no (1-4)"},{key:"kategori",etiket:"Kategori"},{key:"metin",etiket:"Soru",tur:"textarea"},{key:"kimlere",etiket:"Kimlere",tur:"select",secenekler:["Tek alıcı","Tüm alıcılar"]}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/qa/soru/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...v,durum:"Taslak bekliyor"})}); };window.GIRIS_GONDER_BASLIK="Soruyu ekle";</script>
+<script src="../static/giris.js"></script>
+</body></html>
+

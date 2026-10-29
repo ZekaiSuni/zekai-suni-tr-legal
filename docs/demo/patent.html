@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Patent Karşılaştırma</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
+<script src="../static/demo-veri.js"></script>
+<script src="../static/demo-kopru.js"></script>
+</head><body>
+<header class="ust-bar"><div class="marka">Patent Karşılaştırma <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag"></div></header>
+<section class="baslik-satir"><div><h1 id="ad"></h1><p class="ozet" id="ozet"></p></div></section>
+<div class="uyari-kutu" style="margin:0 22px 12px"><div class="uyari" style="background:var(--mavi-zemin);font-size:13px">
+  Görsel dil: <u>altı çizili</u> yalnız onların isteminde. Nihai hüküm daima patent vekilinindir — hücreler "İnceleme" durumunda doğar. Kaynak: TÜRKPATENT bülteni.</div></div>
+<main id="liste"></main>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script>let V=null;
+const RENK={"Aynı veya daha dar":["Aynı/daha dar","yesil"],"Daha geniş, farklı veya yok":["Farklı/yok","kirmizi"],"Koşullu":["Koşullu","sari"],"İnceleme":["İnceleme","gri"]};
+async function yukle(){ V=await api("/api/patent"); ciz(); }
+function ciz(){
+  const k=V.karsilastirma;
+  document.getElementById("ad").textContent=k.ad;
+  const kapatan=V.satirlar.filter(s=>s.hukum==="Aynı veya daha dar").length;
+  document.getElementById("ozet").innerHTML=`${k.muvekkil_patent} ↔ ${k.referans_patent} · ${V.satirlar.length} unsurdan ${kapatan} tanesi referansta karşılanıyor`;
+  document.getElementById("liste").innerHTML=V.satirlar.map(s=>{
+    const r=RENK[s.hukum]||["İnceleme","gri"];
+    return `<div class="sozlesme-satir" style="grid-template-columns:90px 1fr 1fr 160px">
+     <div class="s-ad">${s.istem_no}</div>
+     <div class="s-islem"><b>Unsur:</b> ${s.unsuru}<div class="alinti-kaynak">Bizim metin: ${s.muvekkil_metin||"—"}</div></div>
+     <div class="s-islem">${s.referans_metin?`<div class="alinti-kaynak">Referans (üzeri çizili işaretli metinle karşılaştırılır): ${s.referans_metin}</div>`:'<div class="alinti-kaynak" style="color:var(--ikinci)">Referansta karşılığı bulunamadı — boş hücre (uydurma yok).</div>'}
+      ${s.not_metin?`<div class="mini-cipy mini-inceleme">${s.not_metin}</div>`:""}</div>
+     <div class="s-son-gun">${rozet(r[0],r[1])}${s.kaynak_istem?`<div class="alinti-kaynak">${s.kaynak_istem}</div>`:""}</div></div>`;}).join("");
+}
+yukle();
+</script><script>window.GIRIS_MODUL="patent";window.GIRIS_BASLIK="+ İstem satırı";window.GIRIS_ACIKLAMA="Karşılaştırmaya istem/unsur satırı ekleyin. Boş referans metin = 'referansta karşılığı bulunamadı' (uydurma yok).";window.GIRIS_ALANLARI=[{key:"karsilastirma_id",etiket:"Karşılaştırma no",ornek:"1"},{key:"istem_no",etiket:"İstem no",ornek:"2[a]"},{key:"unsuru",etiket:"Unsur"},{key:"muvekkil_metin",etiket:"Bizim metin",tur:"textarea"},{key:"referans_metin",etiket:"Referans metin (boşsa bulunamadı sayılır)",tur:"textarea"},{key:"hukum",etiket:"Hüküm",tur:"select",secenekler:["Aynı veya daha dar","Daha geniş, farklı veya yok","Koşullu","İnceleme"]},{key:"kaynak_istem",etiket:"Referans istem no"},{key:"not_metin",etiket:"Not",tur:"textarea"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/patent/satir/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Satırı ekle";</script>
+<script src="../static/giris.js"></script>
+</body></html>
+

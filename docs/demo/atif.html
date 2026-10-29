@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — İçtihat & Atıf Denetimi</title><link rel="stylesheet" href="../static/styles.css">
+<style>
+.split{display:grid;grid-template-columns:1.4fr 1fr;height:calc(100vh - 200px);gap:0}
+.sol-panel{border-right:1px solid var(--cizgi);overflow:auto;padding:18px 20px;background:var(--kart)}
+.sol-panel h2{margin:0 0 4px;font-size:17px}
+.sol-panel .kaynak-not{font-size:11.5px;color:var(--ikinci);margin-bottom:14px}
+.belge-metin{font-family:Georgia,serif;font-size:13.5px;line-height:1.85;white-space:pre-wrap}
+.atif-vurgu{background:#ffe9a8;border-bottom:2px solid #d9a800;padding:0 2px;border-radius:2px}
+.atif-vurgu.teyitli{background:#cdeccd;border-bottom-color:var(--yesil)}
+.sag-panel{overflow:auto;padding:14px 16px;background:var(--zemin)}
+.bulgu-kart{background:var(--kart);border:1px solid var(--cizgi);border-left:4px solid var(--sari);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px}
+.bulgu-kart.teyitli{border-left-color:var(--yesil)}
+.bulgu-kart.bulunamadi{border-left-color:var(--kirmizi)}
+.bulgu-kart .atif-ham{font-family:Georgia,serif;font-style:italic;color:var(--ikinci);margin:4px 0}
+.bulgu-kart select{width:100%;padding:6px;border:1px solid var(--cizgi);border-radius:6px;font-size:12px;margin-top:8px}
+.bulgu-not{width:100%;min-height:44px;border:1px solid var(--cizgi);border-radius:6px;padding:6px;font-size:12px;margin-top:6px;resize:vertical}
+</style><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
+<script src="../static/demo-veri.js"></script>
+<script src="../static/demo-kopru.js"></script>
+</head>
+<body>
+<header class="ust-bar"><div class="marka">İçtihat & Atıf Denetimi <span class="cipy ornek" id="ornek-cipi">Örnek veri</span></div>
+  <div class="ust-sag">
+    <label class="ikincil" style="cursor:pointer">+ Belge yükle<input type="file" id="atif-dosya" accept=".txt,.pdf,.docx" style="display:none"></label>
+    <button class="ikincil" id="btn-tara">Belgeyi tara (ayrıştır)</button>
+  </div></header>
+<section class="baslik-satir"><div><h1 id="belge-ad"></h1>
+  <p class="ozet" id="ozet"></p></div>
+  </section>
+<div class="uyari-kutu" style="margin:0 22px 12px"><div class="uyari" style="background:var(--mavi-zemin);font-size:13px">
+  ⚠ <b>Dürüstlük notu:</b> Atıflar <b>otomatik ayrıştırılır</b> (deterministik, halüsinasyonsuz); Yargıtay/Danıştay/AYM karar
+  sistemlerine programatik erişim olmadığından <b>otomatik doğrulama yapmaz</b>. Sarı vurgular insan teyidi içindir:
+  <a href="https://karararama.yargitay.gov.tr" target="_blank">karararama.yargitay.gov.tr</a> ·
+  <a href="https://emsal.danistay.gov.tr" target="_blank">emsal.danistay.gov.tr</a> ·
+  <a href="https://kararlarbilgibankasi.anayasa.gov.tr" target="_blank">kararlarbilgibankasi.anayasa.gov.tr</a></div></div>
+<div class="split">
+  <section class="sol-panel">
+    <h2 id="sol-belge-ad"></h2>
+    <div class="kaynak-not" id="sol-kaynak-not"></div>
+    <div class="belge-metin" id="sol-metin"></div>
+  </section>
+  <section class="sag-panel" id="sag-bulgular"></section>
+</div>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script>
+let V=null, AKTIF_BELGE=null;
+
+async function yukle(){
+  V = await api("/api/atif");
+  ciz();
+}
+
+function ciz(){
+  const b = V.belgeler[0];
+  if(!b){ document.getElementById("belge-ad").textContent = "Belge yok"; return; }
+  AKTIF_BELGE = b;
+  document.getElementById("belge-ad").textContent = b.ad;
+  const bekleyen = V.atiflar.filter(a=>a.durum==="Kaynak gerekli").length;
+  const dogrulanan = V.atiflar.filter(a=>a.durum==="Doğrulandı").length;
+  document.getElementById("ozet").innerHTML =
+    `${V.atiflar.length} içtihat atfı. <b>${bekleyen}</b> kaynak bekliyor · ${dogrulanan} doğrulandı`;
+
+  document.getElementById("sol-belge-ad").textContent = b.ad;
+  document.getElementById("sol-metin").innerHTML = vurgula(b.metin, V.atiflar);
+
+  const sag = document.getElementById("sag-bulgular");
+  sag.innerHTML = V.atiflar.length ? V.atiflar.map(a=>bulguKart(a)).join("") :
+    '<div class="alinti-kutu" style="color:var(--ikinci)">Henüz atıf ayrıştırılmadı — üstteki "Belgeyi tara" düğmesini kullanın.</div>';
+}
+
+function bulguKart(a){
+  const sinif = a.durum==="Doğrulandı" ? "teyitli" :
+                (a.durum==="Karar bulunamadı" ? "bulunamadi" : "");
+  const portal = a.yargi==="AYM" ? "https://kararlarbilgibankasi.anayasa.gov.tr"
+              : a.yargi==="Danıştay" ? "https://emsal.danistay.gov.tr"
+              : "https://karararama.yargitay.gov.tr";
+  return `<div class="bulgu-kart ${sinif}">
+    <b>${esc(a.yargi)} ${esc(a.daire)}</b>
+    <div class="atif-ham">${esc(a.ham)}</div>
+    <div>${a.esas_no||"—"} · ${a.karar_no||"—"}${a.karar_tarihi?" · T. "+a.karar_tarihi:""}</div>
+    <div style="margin:6px 0">${durumRozet(a.durum)}</div>
+    <a href="${portal}" target="_blank" class="alinti-kaynak">Resmî portalda ara ↗</a>
+    <select onchange="durum(${a.id}, this.value)">
+      ${["Kaynak gerekli","Doğrulandı","Karar bulunamadı","İçtihat değişmiş olabilir"].map(d=>`<option ${a.durum===d?"selected":""}>${d}</option>`).join("")}
+    </select>
+    ${a.dogrulama_notu?`<div class="bulgu-not">${esc(a.dogrulama_notu)}</div>`:""}
+  </div>`;
+}
+
+/* Belge metnini kaçışlayıp her atfın E./K. çekirdeğini sarı vurguyla işaretler */
+function vurgula(metin, atiflar){
+  let html = esc(metin);
+  for(const a of atiflar){
+    const es = (a.esas_no||"").replace("E. ","").trim();
+    const ka = (a.karar_no||"").replace("K. ","").trim();
+    if(!es || !ka) continue;
+    const rx = new RegExp(
+      "(E\.\s*" + es.replace("/","\/") + "[\s\S]{0,120}?K\.\s*" + ka.replace("/","\/") + ")",
+      "g");
+    const sinif = a.durum==="Doğrulandı" ? "atif-vurgu teyitli" : "atif-vurgu";
+    html = html.replace(rx, `<mark class="${sinif}">$1</mark>`);
+  }
+  return html;
+}
+
+async function durum(id, durum){
+  const not_metin = prompt("Doğrulama notu (kayda geçer):", "") || "";
+  await api("/api/atif/durum", {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({atif_id:id, durum, not_metin})});
+  yukle();
+}
+
+document.getElementById("btn-tara").addEventListener("click", async ()=>{
+  const b = V.belgeler[0];
+  const r = await api(`/api/atif/tara?belge_id=${b.id}`, {method:"POST"});
+  alert(`${r.yeni.length} yeni atıf ayrıştırıldı, toplam ${r.toplam}.\n${r.not}`);
+  yukle();
+});
+document.getElementById("atif-dosya").addEventListener("change", async (girdi)=>{
+  const f = girdi.target.files[0]; if(!f) return;
+  const fd = new FormData(); fd.append("dosya", f);
+  const r = await fetch("/api/giris/atif/belge", {method:"POST", body:fd});
+  if(!r.ok){ alert("Yükleme başarısız: " + await r.text()); return; }
+  const d = await r.json();
+  alert(`${d.yeni.length} atıf ayrıştırıldı, toplam ${d.toplam}.`);
+  yukle();
+});
+yukle();
+</script></body></html>

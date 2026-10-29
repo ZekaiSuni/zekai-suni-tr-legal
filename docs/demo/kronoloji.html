@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Delil Kronolojisi</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
+<script src="../static/demo-veri.js"></script>
+<script src="../static/demo-kopru.js"></script>
+</head><body>
+
+<div id="ornek-bant" class="ornek-bant">
+  <div><b>Örnek veri:</b> Bu örnek dava kronolojisi değiştirilemez. Kendi davanızın delillerini işlemek için örneği silebilirsiniz.</div>
+  <button onclick="ornekSil()">Örnek verileri sil</button>
+</div>
+
+<header class="ust-bar"><div class="marka">Delil Kronolojisi <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag">
+    <button class="ikincil" onclick="modalAc('yeni-olay-modal')">+ Olay Ekle</button>
+    <button class="birincil" style="background:#111;color:#fff;font-weight:600;display:flex;align-items:center;gap:6px" onclick="modalAc('metin-tara-modal')"><span>Kendi Verilerinizle Başlayın</span> </button>
+    <button class="ikincil" onclick="modalAc('metin-tara-modal')">Dilekçe / Metin Tara</button>
+  </div></header>
+
+<!-- Dosya ve Metin Yükleme Karşılama Alanı -->
+
+
+<section class="baslik-satir"><div><h1 id="ad">Papatya Lojistik A.Ş. — Nilüfer Teknoloji A.Ş. Uyuşmazlığı</h1>
+  <p class="ozet" id="ozet"></p></div></section>
+
+<div class="uyari-kutu" style="margin:0 22px 12px"><div class="uyari" style="background:var(--mavi-zemin);font-size:13px">
+  Olaylar kulvarlara ayrılmıştır. Çizelgedeki noktalara tıklayarak ilgili delil ve alıntı satırına anında odaklanabilirsiniz.</div></div>
+
+<!-- Tıklanabilir ve Kaydırılabilir Zaman Çizelgesi -->
+<div id="zaman-alani" style="padding:0 22px 10px"></div>
+
+<main id="liste"></main>
+
+<!-- Yeni Tekil Olay Modalı -->
+<div id="yeni-olay-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ Kronolojiye Yeni Olay Ekle</h2>
+      <button class="kapat" onclick="modalKapat('yeni-olay-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <form onsubmit="yeniOlayKaydet(event)">
+        <div class="form-grid">
+          <label>Olay Tarihi *
+            <input required type="date" id="no-tarih">
+          </label>
+          <label>Olay Türü
+            <select id="no-tur">
+              <option>İşlem</option>
+              <option>İletişim</option>
+              <option>Toplantı</option>
+              <option>Sözleşme</option>
+              <option>Ödeme</option>
+              <option>Dava</option>
+            </select>
+          </label>
+          <label style="grid-column:1/-1">Olay Başlığı / Özeti *
+            <input required id="no-baslik" placeholder="Örn: Taraflar arasında ek protokol imzalanması">
+          </label>
+          <label style="grid-column:1/-1">Kaynak Alıntı / Detay
+            <textarea id="no-detay" style="height:80px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Belgedeki ilgili paragraf veya delil açıklaması..."></textarea>
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+          <button type="button" class="ikincil" onclick="modalKapat('yeni-olay-modal')">İptal</button>
+          <button type="submit" class="birincil">Olayı Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Metin Tara Modalı -->
+<div id="metin-tara-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>Belge Metni Yapıştır (Tarih ve Olayları Çıkar)</h2>
+      <button class="kapat" onclick="modalKapat('metin-tara-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <div style="font-size:12px;color:var(--ikinci);margin-bottom:10px;padding:8px 12px;background:var(--gri-zemin);border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+        <span>🤖 <b>Çıkarım Motoru:</b> <span id="aktif-model-etiket">Yükleniyor...</span></span>
+        <button type="button" onclick="modelModalAc()" style="background:none;border:none;color:var(--mavi);text-decoration:underline;cursor:pointer;font-size:12px">⚙ Model Ayarları</button>
+      </div>
+      <label style="font-size:12px;color:var(--ikinci);display:block;margin-bottom:6px">Metin *</label>
+      <textarea id="nt-metin" style="width:100%;height:180px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Dilekçe, yazışma veya beyan metnini buraya yapıştırın..."></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px">
+        <button class="ikincil" onclick="modalKapat('metin-tara-modal')">İptal</button>
+        <button class="birincil" id="btn-metin-tara" onclick="metinTaraGonder()">Tarihleri ve Olayları Çıkar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-bildirim" style="display:none">
+  <span id="toast-mesaj">Örnek olaylar silindi.</span>
+  <button onclick="ornekGeriAl()">Geri al</button>
+</div>
+
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script>
+let V=null;
+let AKTIF_INDEX = 0;
+let AY_FILTRE = null; // null = tümü, veya '2023-09' vb.
+const TURLER = {"İletişim":"#5b8ecb","Toplantı":"#4caf7d","Sözleşme":"#7a5fd0","Ödeme":"#c79100","İşlem":"#b3261e","Dava":"#2f7d3a"};
+
+function modalAc(id){ document.getElementById(id).classList.add('acik'); }
+function modalKapat(id){ document.getElementById(id).classList.remove('acik'); }
+
+async function yukle(){ 
+  V = await api("/api/kronoloji"); 
+  ciz(); 
+  modelEtiketGuncelle();
+}
+
+async function modelEtiketGuncelle(){
+  try {
+    const ayar = await api("/api/ayarlar/model");
+    const el = document.getElementById("aktif-model-etiket");
+    if(el){
+      if(ayar.saglayici === "demo" || !ayar.api_key_mevcut){
+        el.innerHTML = `<span style="color:var(--sari)">Demo / Kural Motoru (Anahtar tanımlı değil)</span>`;
+      } else {
+        el.innerHTML = `<b style="color:var(--yesil)">${ayar.saglayici.toUpperCase()}</b> (${ayar.model})`;
+      }
+    }
+  } catch(e){}
+}
+
+function ciz(){
+  const tarihli = V.olaylar.filter(o=>o.tarih);
+  const tarihsiz = V.olaylar.filter(o=>!o.tarih);
+  
+  if(V.olaylar.length && V.olaylar[0].dosya_adi){
+    document.getElementById("ad").textContent = V.olaylar[0].dosya_adi;
+  }
+  
+  document.getElementById("ozet").innerHTML = V.olaylar.length
+    ? `${V.olaylar.length} olay · ${tarihli.length} tarihli · <b>${tarihsiz.length} tarihsiz</b> · ${V.olaylar.filter(o=>o.durum!=="Onaylı").length} incelemede`
+    : `Henüz kayıtlı olay bulunmuyor. Yukarıdan belge yükleyebilir veya metin yapıştırabilirsiniz.`;
+
+  if(!V.olaylar.length){
+    document.getElementById("zaman-alani").innerHTML = "";
+    document.getElementById("liste").innerHTML = `
+      <div style="background:var(--kart);border:1px dashed var(--cizgi);border-radius:12px;padding:48px;text-align:center;color:var(--ikinci)">
+        <h3 style="margin:0 0 8px;color:var(--metin)">Kronoloji Boş</h3>
+        <p style="margin:0 0 16px;font-size:13px">Bu dosyada henüz listelenen bir olay veya delil bulunmuyor.</p>
+        <button class="ikincil" onclick="ornekGeriAl()">Örnek Kronolojiyi Geri Yükle</button>
+      </div>`;
+    return;
+  }
+
+  // Zaman Çizelgesi Hesabı
+  const minTarih = tarihli.length ? tarihli[0].tarih : null;
+  const maxTarih = tarihli.length ? tarihli[tarihli.length-1].tarih : null;
+  
+  if(minTarih && maxTarih){
+    const bas = new Date(minTarih), son = new Date(maxTarih);
+    const toplam = (son - bas) || 86400000;
+    const pos = d => Math.max(2, Math.min(98, ((new Date(d) - bas) / toplam) * 100));
+
+    // Ayları topla
+    const aylarSet = new Set();
+    tarihli.forEach(o => aylarSet.add(o.tarih.slice(0, 7)));
+    const aylarListesi = Array.from(aylarSet);
+
+    let zHtml = `
+      <div class="zaman-kontrol-bar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="ikincil zc-btn" onclick="olayAdim(-1)" title="Önceki olaya atla">◀ Önceki Olay</button>
+          <span style="font-size:12px;color:var(--ikinci);font-weight:600">
+            Olay: <b style="color:var(--metin)">${AKTIF_INDEX + 1}</b> / ${tarihli.length}
+          </span>
+          <button class="ikincil zc-btn" onclick="olayAdim(1)" title="Sonraki olaya atla">Sonraki Olay ▶</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--ikinci)">Dönem:</span>
+          <button class="filtre-hap ${!AY_FILTRE?'secili':''}" onclick="ayFiltrele(null)">Tümü</button>
+          ${aylarListesi.map(ay => {
+            const d = new Date(ay + "-01");
+            const etiket = `${AYLAR[d.getMonth()]} ${d.getFullYear()}`;
+            return `<button class="filtre-hap ${AY_FILTRE===ay?'secili':''}" onclick="ayFiltrele('${ay}')">${etiket}</button>`;
+          }).join("")}
+        </div>
+      </div>
+
+      <!-- Tıklanabilir Orijinal Zaman Çizgisi -->
+      <div class="zaman-cizgi" style="display:flex;align-items:center;gap:14px;padding:16px 20px">
+        <button class="zc-btn ok-btn" onclick="kronolojiBasaGit()" title="İlk olaya odaklan (${trTarih(minTarih)})">
+          ◀ ${trTarih(minTarih)}
+        </button>
+
+        <div class="zc-alan" style="flex:1;margin:0 10px;cursor:pointer" title="Çizelgedeki noktalara tıklayarak ilgili olaya gidebilirsiniz">
+          ${tarihli.map((o, idx)=>`
+            <div class="zc-nokta" 
+                 id="zc-dot-${o.id}"
+                 style="left:${pos(o.tarih)}%;background:${TURLER[o.tur]||"var(--ikinci)"};${AKTIF_INDEX===idx?'transform:translate(-50%,-50%) scale(1.6);box-shadow:0 0 0 4px rgba(43,92,230,0.35)':''}" 
+                 title="${idx+1}. ${trTarih(o.tarih)} — [${o.tur}] ${esc(o.metin.slice(0,60))} (Tıkla ve Git)"
+                 onclick="olayaGit(${o.id}, ${idx})">
+            </div>`).join("")}
+        </div>
+
+        <button class="zc-btn ok-btn" onclick="kronolojiSonaGit()" title="Son olaya odaklan (${trTarih(maxTarih)})">
+          ${trTarih(maxTarih)} ▶
+        </button>
+      </div>`;
+    document.getElementById("zaman-alani").innerHTML = zHtml;
+  } else {
+    document.getElementById("zaman-alani").innerHTML = "";
+  }
+
+  // Olaylar Listesi (Ay filtresine göre)
+  const gosterilecekOlaylar = AY_FILTRE 
+    ? V.olaylar.filter(o => o.tarih && o.tarih.startsWith(AY_FILTRE))
+    : V.olaylar;
+
+  let html = "";
+  for(const o of gosterilecekOlaylar){
+    html += `<div class="sozlesme-satir olay-satiri" id="olay-satir-${o.id}" style="grid-template-columns:170px 110px 1fr 130px 40px">
+      <div class="s-ad" style="cursor:pointer" onclick="olayaGit(${o.id})" title="Zaman çizgisiyle eşleştir">
+        ${o.tarih?trTarih(o.tarih):'<span style="color:var(--sari)">Tarihsiz</span>'}
+        ${o.yakinlik==="Yaklaşık"?'<div class="alinti-kaynak">≈ yaklaşık</div>':""}
+      </div>
+      <div><span class="mini-cipy" style="background:${TURLER[o.tur]||"var(--ikinci)"}22;color:${TURLER[o.tur]||"var(--ikinci)"}">${o.tur}</span></div>
+      <div class="s-islem"><b>${esc(o.metin)}</b>
+        <div class="alinti-kaynak">Kaynak alıntı: "${(o.kaynak_alinti||o.metin).slice(0,140)}" · ${o.kaynak_dosya||"Belge"}</div></div>
+      <div class="s-son-gun"><select onchange="durum(${o.id}, this.value)" style="width:100%;padding:6px;border:1px solid var(--cizgi);border-radius:6px">
+        ${["İnceleme","Onaylı","İtirazlı"].map(d=>`<option ${o.durum===d?"selected":""}>${d}</option>`).join("")}</select></div>
+      <div><button class="kirmizi-btn" style="padding:4px 8px;font-size:11px" onclick="olaySil(${o.id})" title="Sil">×</button></div></div>`;
+  }
+  document.getElementById("liste").innerHTML = html;
+}
+
+function olayaGit(id, idx){
+  if(idx !== undefined) AKTIF_INDEX = idx;
+  const el = document.getElementById("olay-satir-" + id);
+  if(el){
+    el.scrollIntoView({behavior: "smooth", block: "center"});
+    el.classList.add("olay-vurgulu");
+    setTimeout(()=> el.classList.remove("olay-vurgulu"), 2400);
+  }
+  ciz();
+}
+
+function olayAdim(yon){
+  const tarihli = V.olaylar.filter(o=>o.tarih);
+  if(!tarihli.length) return;
+  AKTIF_INDEX = Math.max(0, Math.min(tarihli.length - 1, AKTIF_INDEX + yon));
+  olayaGit(tarihli[AKTIF_INDEX].id, AKTIF_INDEX);
+}
+
+function kronolojiBasaGit(){
+  const tarihli = V.olaylar.filter(o=>o.tarih);
+  if(!tarihli.length) return;
+  AKTIF_INDEX = 0;
+  olayaGit(tarihli[0].id, 0);
+}
+
+function kronolojiSonaGit(){
+  const tarihli = V.olaylar.filter(o=>o.tarih);
+  if(!tarihli.length) return;
+  AKTIF_INDEX = tarihli.length - 1;
+  olayaGit(tarihli[AKTIF_INDEX].id, AKTIF_INDEX);
+}
+
+function ayFiltrele(ay){
+  AY_FILTRE = ay;
+  ciz();
+  if(ay){
+    const ilk = V.olaylar.find(o => o.tarih && o.tarih.startsWith(ay));
+    if(ilk) olayaGit(ilk.id);
+  }
+}
+
+async function durum(id, durum){
+  await api("/api/kronoloji/olay", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id, durum})});
+  yukle();
+}
+
+async function olaySil(id){
+  if(!confirm("Bu olayı kronolojiden silmek istediğinizden emin misiniz?")) return;
+  await api("/api/kronoloji/sil", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id})});
+  yukle();
+}
+
+async function yeniOlayKaydet(e){
+  e.preventDefault();
+  const veri = {
+    tarih: document.getElementById("no-tarih").value,
+    baslik: document.getElementById("no-baslik").value.trim(),
+    detay: document.getElementById("no-detay").value.trim(),
+    tur: document.getElementById("no-tur").value
+  };
+  await api("/api/kronoloji/ekle", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(veri)});
+  modalKapat('yeni-olay-modal');
+  yukle();
+}
+
+async function metinTaraGonder(){
+  const metin = document.getElementById("nt-metin").value.trim();
+  if(!metin) return alert("Lütfen taranacak metni yapıştırın.");
+  
+  const btn = document.getElementById("btn-metin-tara");
+  btn.disabled = true;
+  btn.textContent = "⏳ İnceleniyor...";
+
+  const fd = new FormData();
+  fd.append("modul", "kronoloji");
+  fd.append("baslik", "Dilekçe Metni");
+  fd.append("metin_girisi", metin);
+  try {
+    const res = await fetch("/api/evrak-yukle-ve-isle", {method:"POST", body:fd});
+    const veri = await res.json();
+    modalKapat('metin-tara-modal');
+    alert(veri.mesaj || "Metin başarıyla tarandı ve olaylar kronolojiye eklendi!");
+    yukle();
+  } catch(err){ 
+    alert("Hata: " + err.message); 
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Tarihleri ve Olayları Çıkar";
+  }
+}
+
+async function evrakYukle(input){
+  if(!input.files.length) return;
+  const file = input.files[0];
+  const fd = new FormData();
+  fd.append("modul", "kronoloji");
+  fd.append("baslik", file.name);
+  fd.append("dosya", file);
+  try {
+    const res = await fetch("/api/evrak-yukle-ve-isle", {method:"POST", body:fd});
+    const veri = await res.json();
+    alert(veri.mesaj || "Belgeden kronolojik olaylar başarıyla çıkarıldı!");
+    yukle();
+  } catch(err){ alert("Yükleme hatası: " + err.message); }
+}
+
+async function ornekSil(){
+  await api("/api/kronoloji/ornek-sil", {method:"POST"});
+  document.getElementById("ornek-bant").style.display = "none";
+  document.getElementById("toast").style.display = "flex";
+  yukle();
+}
+
+async function ornekGeriAl(){
+  await api("/api/ornek-geri-yukle", {method:"POST"});
+  document.getElementById("toast").style.display = "none";
+  document.getElementById("ornek-bant").style.display = "flex";
+  yukle();
+}
+
+yukle();
+</script><style>
+.zaman-kontrol-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.zc-btn{padding:5px 12px;font-size:12px;border-radius:6px;cursor:pointer}
+.zaman-cizgi{display:flex;gap:8px;align-items:center}
+.zc-alan{flex:1;height:38px;background:repeating-linear-gradient(90deg,var(--gri-zemin),var(--gri-zemin) 1px,transparent 1px,transparent 40px);border-radius:8px;position:relative;border:1px solid var(--cizgi)}
+.zc-nokta{position:absolute;width:14px;height:14px;border-radius:50%;top:11px;transform:translateX(-50%);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer;transition:transform .15s}
+.zc-nokta:hover{transform:translateX(-50%) scale(1.4)}
+.olay-satiri{transition:background-color .4s, border-color .4s}
+.olay-vurgulu{background-color:#fff9db!important;border-color:var(--sari)!important}
+</style><script>window.GIRIS_MODUL="kronoloji";window.GIRIS_BASLIK="+ Belge yükle";window.GIRIS_ACIKLAMA="Delil belgesi (dilekçe, e-posta arşivi, tutanak) yükleyin — tarih kalıpları çıkarılır, her olay kaynak cümlesiyle 'İnceleme' durumunda doğar.";window.GIRIS_ALANLARI=[{key:"dosya",etiket:"Delil belgesi (PDF/Word/metin)",tur:"dosya"}];window.GIRIS_GONDER=async (v,d)=>{ if(!d) throw new Error("Dosya seçin"); const fd=new FormData(); fd.append("dosya",d); const r=await fetch("/api/giris/kronoloji/belge",{method:"POST",body:fd}); if(!r.ok) throw new Error(await r.text()); const s=await r.json(); alert(s.eklenen+" olay çıkarıldı (demo)."); };window.GIRIS_GONDER_BASLIK="Belgeyi tara";</script>
+<script src="../static/giris.js"></script>
+</body></html>

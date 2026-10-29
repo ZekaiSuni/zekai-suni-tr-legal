@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Dava Portföyü</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
+<script src="../static/demo-veri.js"></script>
+<script src="../static/demo-kopru.js"></script>
+</head><body>
+<header class="ust-bar"><div class="marka">Dava Portföyü <span class="cipy ornek">Örnek veri</span></div></header>
+<section class="baslik-satir"><div><h1>Şirket dava portföyü</h1><p class="ozet" id="ozet"></p></div></section>
+<main id="liste"></main>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script>let V=null;
+async function yukle(){ V=await api("/api/portfoy"); ciz(); }
+function ciz(){
+  const o=V.ozet;
+  document.getElementById("ozet").innerHTML=`${o.dosya} dosya · toplam dava değeri <b>₺${o.toplam_deger.toLocaleString("tr-TR")}</b> · ${o.davaci} davacı / ${o.davali} davalı konumu`;
+  document.getElementById("liste").innerHTML=V.kayitlar.map(k=>`
+   <div class="sozlesme-satir" style="grid-template-columns:1fr 200px 170px">
+    <div><div class="s-ad">${k.konu}</div>
+     <div class="s-alt">${k.mahkeme} · ${k.esas_no} · Biz: ${k.tarafimiz}</div>
+     <div class="s-islem"><b>Sonraki adım:</b> ${k.sonraki_adim||"—"} <span class="alinti-kaynak">Aşama: ${k.asama}</span></div>
+     ${k.not_metin?`<div class="alinti-kaynak">${k.not_metin}</div>`:""}</div>
+    <div class="s-islem"><b>Değer:</b> ₺${(k.dava_degeri||0).toLocaleString("tr-TR")}<br><b>Kazanma olasılığı:</b> ${k.kazanma_olasiligi}</div>
+    <div class="s-son-gun">${durumRozet(k.kazanma_olasiligi==="Yüksek"?"Onaylandı":k.kazanma_olasiligi==="Düşük"?"Kaçtı":"Bekliyor")}<div class="alinti-kaynak">${k.musteri}</div></div></div>`).join("");
+}
+yukle();
+</script><script>window.GIRIS_MODUL="portfoy";window.GIRIS_BASLIK="+ Dava ekle";window.GIRIS_ACIKLAMA="Portföye dava ekleyin (değer, kazanma olasılığı, taraf konumu).";window.GIRIS_ALANLARI=[{key:"musteri",etiket:"Müşteri"},{key:"konu",etiket:"Konu"},{key:"mahkeme",etiket:"Mahkeme"},{key:"esas_no",etiket:"Esas no"},{key:"tarafimiz",etiket:"Bizim konumumuz",tur:"select",secenekler:["Davacı","Davalı"]},{key:"dava_degeri",etiket:"Dava değeri (TL)",tur:"number"},{key:"kazanma_olasiligi",etiket:"Kazanma olasılığı",tur:"select",secenekler:["Düşük","Orta","Yüksek"]},{key:"asama",etiket:"Aşama"},{key:"sonraki_adim",etiket:"Sonraki adım"},{key:"not_metin",etiket:"Not",tur:"textarea"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/portfoy/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Davayı ekle";</script>
+<script src="../static/giris.js"></script>
+</body></html>

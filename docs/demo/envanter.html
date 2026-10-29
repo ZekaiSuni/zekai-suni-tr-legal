@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Yapay Zeka Kullanım Envanteri</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
+<script src="../static/demo-veri.js"></script>
+<script src="../static/demo-kopru.js"></script>
+</head><body>
+<header class="ust-bar"><div class="marka">Yapay Zeka Kullanım Envanteri <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag"></div></header>
+<section class="baslik-satir"><div><h1>Kurumsal yapay zeka kullanım kaydı <span class="cipy ornek">Örnek veri</span></h1>
+  <p class="ozet">Kayıt ilkesi: <b>araç başına değil, kullanım başına</b> (kayıt = kullanım). KVKK uyum takibi: her kullanımın veri sınıfı ve girdi hijyeni kayda geçer.</p></div></section>
+<section class="filtreler"><span class="cipy kirmizi-cipy" id="o-durdur"></span><span class="cipy" id="o-yuksek"></span>
+  <span class="cipy" id="o-orta"></span><span class="cipy" id="o-gunluk"></span><span class="cipy" id="o-yok"></span>
+  <span class="cipy" style="margin-left:auto">Etki dağılımı — AI önce katman önerir ("ilk değerlendirme"), insan karar verir</span></section>
+<main id="liste"></main>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="../static/nav.js"></script><script src="../static/ortak.js"></script>
+<script>
+let V=null;
+async function yukle(){ V = await api("/api/envanter"); ciz(); }
+function ciz(){
+  const o = V.ozet;
+  document.getElementById("o-durdur").innerHTML = `Durdur <b>${o.Durdur}</b>`;
+  document.getElementById("o-yuksek").innerHTML = `Yüksek <b>${o.Yüksek}</b>`;
+  document.getElementById("o-orta").innerHTML = `Orta <b>${o.Orta}</b>`;
+  document.getElementById("o-gunluk").innerHTML = `Günlük <b>${o.Günlük}</b>`;
+  document.getElementById("o-yok").innerHTML = `Henüz katmansız <b>${o["Henüz yok"]}</b>`;
+  const liste = document.getElementById("liste");
+  liste.innerHTML = V.kullanimlar.map(k=>`
+    <div class="sozlesme-satir" style="grid-template-columns:1fr 200px 210px 170px">
+      <div><div class="s-ad">${k.ad}</div><div class="s-alt">${k.bolum} · ${k.arac} (${k.satici}) · ${k.asama}</div>
+        <div class="s-rozetler">${k.onerilen_katman && k.onerilen_katman!==k.katman?`<span class="mini-cipy cikarim-demo">AI önerisi: ${k.onerilen_katman}</span>`:""}
+        ${k.sahip_rol?`<span class="mini-cipy mini-sahip">${k.sahip_rol}</span>`:""}</div></div>
+      <div class="s-islem"><b>Amaç:</b> ${k.amac}<br><b>Etkiyenler:</b> ${k.etkiyenler||"—"}</div>
+      <div class="s-islem">${k.kosullar?`<b>Koşullar:</b> ${k.kosullar}${k.kosul_son?` <span style="color:var(--kirmizi)">(koşul son: ${trTarih(k.kosul_son)}${new Date(k.kosul_son)<new Date()?" — GECİKMİŞ":""})</span>`:""}`:""}<br>${k.veri_gizlilik?`<i style="color:var(--ikinci)">${k.veri_gizlilik}</i>`:""}</div>
+      <div class="s-son-gun">${durumRozet(k.katman)}<div style="margin-top:4px">${durumRozet(k.durum)}</div>
+        <select onchange="katman(${k.id}, this.value)" style="width:100%;margin-top:6px;padding:5px;border:1px solid var(--cizgi);border-radius:6px">
+        ${["Durdur","Yüksek","Orta","Günlük","Henüz yok"].map(x=>`<option ${k.katman===x?"selected":""}>${x}</option>`).join("")}</select></div></div>`).join("");
+}
+async function katman(id, katman){
+  const kimi = prompt("Katmanı kararlaştıran:", "Uyum Ekibi · "); if(kimi===null) return;
+  const durum = katman==="Durdur" ? "Reddedildi" : (katman==="Yüksek" ? "Koşullu onaylandı" : "Onaylandı");
+  await api("/api/envanter/katman", {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({id, katman, kimi, durum})});
+  yukle();
+}
+yukle();
+</script><script>window.GIRIS_MODUL="envanter";window.GIRIS_BASLIK="+ Kullanım kaydı";window.GIRIS_ACIKLAMA="Kurumda kullanılan/planlanan AI kullanımını kaydedin (kayıt ilkesi: araç başına değil kullanım başına). AI katman önerir, insan karar verir.";window.GIRIS_ALANLARI=[{key:"ad",etiket:"Kullanım adı"},{key:"bolum",etiket:"Birim"},{key:"amac",etiket:"Ne işe yarıyor, neden",tur:"textarea"},{key:"asama",etiket:"Aşama",tur:"select",secenekler:["Planlama","Pilot","Uygulamada","Değerlendirme"]},{key:"sahip_rol",etiket:"Sorumlu rol"},{key:"arac",etiket:"Araç"},{key:"satici",etiket:"Satıcı"},{key:"etkiyenler",etiket:"Kimleri etkiliyor"},{key:"veri_gizlilik",etiket:"Girdi hijyeni notu (kişi adı/gizli ayrıntı yazmayın)",tur:"textarea"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/envanter/kullanim/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Kullanımı kaydet";</script>
+<script src="../static/giris.js"></script>
+</body></html>
+

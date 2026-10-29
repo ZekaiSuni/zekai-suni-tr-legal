@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Mevzuat Değişim Takibi</title><link rel="stylesheet" href="../static/styles.css"><script>window.ZEKAI_STATIK=true;window.ZK_NAV_PRO="..";</script>
+<script src="../static/demo-veri.js"></script>
+<script src="../static/demo-kopru.js"></script>
+</head><body>
+<header class="ust-bar"><div class="marka">Mevzuat Değişim Takibi <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag"></div></header>
+<section class="baslik-satir"><div><h1>Mevzuat değişiklik taraması <span class="cipy ornek">Örnek veri</span></h1>
+  <p class="ozet" id="ozet"></p></div>
+  <div class="baslik-sag"><span class="cipy" id="profil-cipi" title="Etki puanı = düzenleme × kurumun ürün özellikleri (kapsam etiketleri) × yargı × tarih yakınlığı">Profil: Örnek Holding (çevrimiçi hizmet)</span></div></section>
+<div class="uyari-kutu" style="margin:0 22px 12px"><div class="uyari" style="background:var(--mavi-zemin);font-size:13px">
+  Kaynaklar: <a href="https://www.resmigazete.gov.tr" target="_blank">Resmî Gazete</a> · <a href="https://www.mevzuat.gov.tr" target="_blank">mevzuat.gov.tr</a> · <a href="https://www.kvkk.gov.tr" target="_blank">KVKK</a> · <a href="https://www.btk.gov.tr" target="_blank">BTK</a> + AB hattı (Yapay Zeka Tüzüğü). Gerçek izleme ajanı RG'yi dönemsel tarar; bu demo statik tohum kayıtlar içerir.</div></div>
+<section id="zaman-alan" style="padding:0 22px 12px"></section>
+<main id="liste"></main>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="../static/nav.js"></script><script src="../static/ortak.js"></script><script src="../static/mevzuat-zaman.js"></script>
+<script>
+let V=null;
+async function yukle(){ V = await api("/api/mevzuat"); ciz(); }
+function ciz(){
+  const o = V.ozet;
+  document.getElementById("ozet").innerHTML = `${o.toplam} gelişme izleniyor · <b>${o.yuksek} yüksek etki</b> · ${o.onumuzdeki90} tanesinin tarihi önümüzdeki 90 günde`;
+  zamanCizelgesiCiz(V.kayitlar);
+  const liste = document.getElementById("liste");
+  liste.innerHTML = V.kayitlar.map(k=>{
+    const gun = k.gecer_tarihi ? Math.ceil((new Date(k.gecer_tarihi)-new Date())/86400000) : null;
+    return `<div class="sozlesme-satir" style="grid-template-columns:1fr 230px 170px">
+      <div><div class="s-ad">${k.baslik}</div>
+        <div class="s-alt">${k.kaynak} · Kapsam özellikleri: ${k.kapsam_ozellikleri||"—"}</div>
+        <div class="s-rozetler">${k.onerilen_islem?`<span class="mini-cipy mini-inceleme">Önerilen işlem: ${k.onerilen_islem}</span>`:""}</div></div>
+      <div class="s-islem">
+        ${k.gecer_tarihi?`<b>Yürürlük:</b> ${trTarih(k.gecer_tarihi)}`:`<b>Durum:</b> ${k.tarih_durumu}`}
+        ${gun!==null?`<div style="color:${gun<0?"var(--kirmizi)":gun<=90?"var(--sari)":"var(--ikinci)"}">${gun<0?Math.abs(gun)+" gün geçti":gun+" gün kaldı"}</div>`:""}
+        ${k.url?`<a href="${k.url}" target="_blank" class="alinti-kaynak">Resmî kaynakta doğrula ↗</a>`:""}</div>
+      <div class="s-son-gun">${durumRozet(k.etki)} ${durumRozet(k.tarih_durumu)}
+        ${k.dogrulandi?'<div class="mini-cipy mini-duzeltildi" style="margin-top:4px">Doğrulandı</div>':""}
+        ${k.reviewer?`<div class="alinti-kaynak">${k.reviewer}</div>`:""}</div></div>`;
+  }).join("");
+}
+yukle();
+</script><script>window.GIRIS_MODUL="mevzuat";window.GIRIS_BASLIK="+ Gelişme ekle";window.GIRIS_ACIKLAMA="İzlenecek mevzuat gelişmesini ekleyin (RG/AB/KVKK/BTK). Gerçek ajan RG taramasını dönemsel yapar; burada elle kayıt da mümkün.";window.GIRIS_ALANLARI=[{key:"baslik",etiket:"Gelişme başlığı"},{key:"kaynak",etiket:"Kaynak",tur:"select",secenekler:["RG","AB","KVKK","BTK","TÜRKPATENT"]},{key:"url",etiket:"Resmî kaynak URL"},{key:"etki",etiket:"Etki",tur:"select",secenekler:["Yüksek","Orta","Düşük"]},{key:"kapsam_ozellikleri",etiket:"Kapsam özellikleri (hangi ürün özelliklerine dokunuyor)"},{key:"gecer_tarihi",etiket:"Yürürlük tarihi",tur:"date"},{key:"onerilen_islem",etiket:"Önerilen işlem",tur:"textarea"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/mevzuat/kayit/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Gelişmeyi ekle";</script>
+<script src="../static/giris.js"></script>
+</body></html>
+
