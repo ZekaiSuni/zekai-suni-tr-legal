@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Duruşma & UYAP Takip Duvarı</title><link rel="stylesheet" href="/static/styles.css"></head><body>
+<header class="ust-bar"><div class="marka">Duruşma & UYAP Takip Duvarı <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag"></div></header>
+<section class="baslik-satir"><div><h1>İzlenen davalar (UYAP dosya takibi)</h1>
+  <p class="ozet" id="ozet"></p></div></section>
+<div class="uyari-kutu" style="margin:0 22px 12px"><div class="uyari" style="background:var(--mavi-zemin);font-size:13px">
+  Tarih güven üçlüsü: <b>Teyit edildi</b> (dolu) · <b>Teyit bekliyor</b> (belgeden çıkarıldı, insan onayında) · <b>Metinde geçiyor</b> (olay tarihi değil). Kaynak: UYAP'tan indirilen tensip/tebligat belgeleri.</div></div>
+<main id="liste"></main>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script>
+<script>let V=null;
+async function yukle(){ V=await api("/api/izleme"); ciz(); }
+function ciz(){
+  document.getElementById("ozet").innerHTML=`${V.dosyalar.length} dava izleniyor · ${V.dosyalar.filter(d=>d.tarih_durumu==="Teyit bekliyor").length} tarih teyit bekliyor`;
+  document.getElementById("liste").innerHTML=V.dosyalar.map(d=>`
+   <div class="sozlesme-satir" style="grid-template-columns:1fr 240px 180px">
+    <div><div class="s-ad">${esc(d.taraflar)}</div>
+     <div class="s-alt">${d.mahkeme} · ${d.esas_no}</div>
+     <div class="s-islem"><b>${esc(d.son_islem)}</b> <span style="color:var(--ikinci)">(${trTarih(d.son_islem_tarihi)})</span></div>
+     <div class="alinti-kaynak">"${esc(d.tarih_alinti)}"</div>
+     ${d.haber_notu?`<div class="mini-cipy cikarim-demo">Haber: ${d.haber_notu}</div>`:""}
+     ${d.kisisel_not?`<div class="mini-cipy mini-inceleme">Not: ${d.kisisel_not}</div>`:""}</div>
+    <div class="s-islem">${durumRozet(d.islem_turu||"İnceleme")}<br>
+     ${d.cikarilan_tarih?`<b>Çıkarılan tarih:</b> ${trTarih(d.cikarilan_tarih)}`:"İleride tarih yok"}
+     ${d.kalan!==null?`<div style="color:${d.geciken?"var(--kirmizi)":"var(--ikinci)"}">${d.geciken?Math.abs(d.kalan)+" gün geçti":d.kalan+" gün kaldı"}</div>`:""}</div>
+    <div class="s-son-gun"><select onchange="teyit(${d.id}, this.value)" style="width:100%;padding:6px;border:1px solid var(--cizgi);border-radius:6px">
+     ${["Teyit bekliyor","Teyit edildi","Metinde geçiyor"].map(x=>`<option ${d.tarih_durumu===x?"selected":""}>${x}</option>`).join("")}</select></div></div>`).join("");
+}
+async function teyit(id,v){ await api("/api/izleme/teyit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,tarih_durumu:v})}); yukle(); }
+yukle();
+</script><script>window.GIRIS_MODUL="izleme";window.GIRIS_BASLIK="+ Dosya izle";window.GIRIS_ACIKLAMA="UYAP'tan indirdiğiniz tensip/tebligat metnini yapıştırın — Son tarih kalıbı otomatik çıkarılır ve 'Teyit bekliyor' durumuna alır.";window.GIRIS_ALANLARI=[{key:"mahkeme",etiket:"Mahkeme"},{key:"esas_no",etiket:"Esas no"},{key:"taraflar",etiket:"Taraflar"},{key:"islem_turu",etiket:"İşlem türü",tur:"select",secenekler:["Tensip","Tebliğ","Dilekçe","Celse","Karar","Bilirkişi"]},{key:"son_islem",etiket:"Son işlem özeti"},{key:"tensip_metni",etiket:"Tensip/tebligat metni (tarih kalıbı buradan çıkarılır)",tur:"textarea"}];window.GIRIS_GONDER=async (v)=>{ const p=new URLSearchParams(); Object.entries(v).forEach(([k,x])=>p.append(k,x)); const r=await api("/api/giris/izleme/ekle?"+p.toString(),{method:"POST"}); alert(r.not+" Çıkarılan tarih: "+(r.cikarilan_tarih||"yok")); };window.GIRIS_GONDER_BASLIK="İzlemeye ekle";</script>
+<script src="/static/giris.js"></script>
+</body></html>

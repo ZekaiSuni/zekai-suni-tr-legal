@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>İhbar Takvimi</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="ust-bar">
+  <div class="marka"><span class="logo">◐</span> İhbar Takvimi
+    <span class="cipy ornek" id="ornek-cipi">Örnek veri</span>
+  </div>
+  <div class="ust-sag">
+    <button id="btn-tatiller" class="ikincil">Resmî tatiller</button>
+    <button id="btn-ekle" class="ikincil">+ Sözleşme ekle</button>
+    <button class="birincil" style="background:#111;color:#fff;font-weight:600;display:flex;align-items:center;gap:6px" onclick="document.getElementById('btn-ekle').click()"><span>Kendi Verilerinizle Başlayın</span> </button>
+  </div>
+</header>
+
+<section class="baslik-satir">
+  <div>
+    <h1><span class="geri">‹</span> Sözleşme İhbar Takvimi <span class="cipy ornek" id="ornek-cipi">Örnek veri</span></h1>
+    <p class="ozet" id="ozet-satiri">Yükleniyor…</p>
+  </div>
+  <div class="baslik-sag"><button id="btn-ics" class="ikincil">⤓ Takvim (.ics)</button>
+    <button id="btn-csv" class="ikincil">⤓ CSV</button>
+    <button id="btn-json" class="ikincil">⤓ JSON</button>
+  </div>
+</section>
+
+<div class="lejant">
+  <span><i class="bant donem"></i> Dönem</span>
+  <span><i class="bant ihbar"></i> İhbar penceresi</span>
+  <span><i class="bant gec"></i> Çok geç</span>
+  <span><i class="cizgi"></i> Son gün</span>
+  <span><i class="bant uzarsa"></i> Uzarsa</span>
+</div>
+
+<section class="filtreler">
+  <input id="ara" type="search" placeholder="Sözleşme veya karşı taraf ara…">
+  <span class="cipy" id="f-sahipsiz">Sahipsiz <b>0</b></span>
+  <span class="cipy kirmizi-cipy" id="f-inceleme">İnceleme gerekli <b>0</b></span>
+</section>
+
+<main id="liste"></main>
+
+<!-- Detay çekmecesi -->
+<aside id="cekmecem" class="cekmece gizli">
+  <div class="cekmece-bas">
+    <div>
+      <div class="cekmece-alt-baslik" id="d-karsi-taraf"></div>
+      <h2 id="d-ad"></h2>
+    </div>
+    <button id="d-kapat" class="kapat">×</button>
+  </div>
+  <div class="cekmece-icerik" id="d-icerik"></div>
+</aside>
+
+<!-- Ekle modalı -->
+<div id="ekle-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas"><h2>Sözleşme ekle</h2><button id="e-kapat" class="kapat">×</button></div>
+    <div class="modal-icerik">
+      <p class="uyari">PDF, Word veya metin dosyası yükleyin — Claude anahtar tanımlıysa gerçek çıkarım, değilse <b>demo çıkarımı</b> (kalıp eşleme) çalışır. Her iki modda da sonuç avukat onayı bekler.</p>
+      <input type="file" id="e-dosya" accept=".pdf,.docx,.txt">
+      <div id="e-analiz"></div>
+      <div class="form-grid">
+        <label>Sözleşme adı<input id="e-ad"></label>
+        <label>Karşı taraf<input id="e-karsi"></label>
+        <label>Tür<select id="e-tur"><option>Kira</option><option>Hizmet</option><option>Lisans</option><option>Bayilik</option><option>Tedarik</option></select></label>
+        <label>Başlangıç<input id="e-baslangic" type="date"></label>
+        <label>Süre (ay)<input id="e-sure" type="number" min="1"></label>
+        <label class="sec"><input id="e-uzatma" type="checkbox"> Otomatik uzatma</label>
+        <label>Uzatma süresi (ay)<input id="e-uzatma-sure" type="number" min="1"></label>
+        <label>Uzatma artışı (%)<input id="e-artis" type="number" step="0.5"></label>
+        <label>İhbar süresi<input id="e-ihbar-deger" type="number" min="1"></label>
+        <label>İhbar birimi<select id="e-ihbar-birim"><option>gün</option><option>hafta</option><option>ay</option></select></label>
+        <label>İhbar şekli<select id="e-ihbar-sekli"><option>Yazılı</option><option>Noter</option><option>KEP</option></select></label>
+        <label>Yıllık bedel (₺)<input id="e-fiyat" type="number" step="0.01"></label>
+      </div>
+      <div id="e-alinti" class="alinti gizli"></div>
+      <button id="e-kaydet" class="birincil">Sözleşmeyi kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tatiller modalı -->
+<div id="tatil-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas"><h2>Resmî tatiller (atlanacak günler)</h2><button id="t-kapat" class="kapat">×</button></div>
+    <div class="modal-icerik">
+      <p class="uyari">Süre motoru son ihbar günü tatile/hafta sonuna denk gelirse <b>tarihi otomatik değiştirmez</b> — uyarı üretir ve TBK m. 93 mütalaasıyla izleyen iş gününü önerir (dürüstlük deseni).</p>
+      <ul id="t-liste" class="tatil-liste"></ul>
+      <p class="kaynak-not" id="t-yaklasik"></p>
+    </div>
+  </div>
+</div>
+
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script><script src="/static/app.js"></script>
+<script>window.GIRIS_MODUL="ihbar";</script>
+<script src="/static/giris.js"></script>
+<script>window.GIRIS_BASLIK="Sözleşme ekle";</script>
+</body>
+</html>
+

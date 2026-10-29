@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Sözleşme Müzakere Rehberi</title><link rel="stylesheet" href="/static/styles.css">
+</head><body>
+
+<div id="ornek-bant" class="ornek-bant">
+  <div><b>Örnek veri:</b> Bu örnek müzakere matrisi değiştirilemez. Kendi sözleşmelerinizle çalışmak için örneği silebilirsiniz.</div>
+  <button onclick="ornekSil()">Örnek verileri sil</button>
+</div>
+
+<header class="ust-bar"><div class="marka">Sözleşme Müzakere Rehberi <span class="cipy ornek" id="ornek">Örnek veri</span></div>
+  <div class="ust-sag">
+    <button class="ikincil" onclick="modalAc('sutun-yonet-modal')">⚙ Sütunları Yönet</button>
+    <button class="ikincil" onclick="modalAc('yeni-sutun-modal')">+ Yeni Sütun Ekle</button>
+    <button class="ikincil" onclick="modalAc('yeni-madde-modal')">+ Madde Ekle</button>
+    <button class="ikincil" onclick="location.href='/api/playbook/export.json'">⤓ JSON</button>
+    <button class="birincil" style="background:#111;color:#fff;font-weight:600;display:flex;align-items:center;gap:6px" onclick="modalAc('uyarla-modal')">
+      <span>Kendi Verilerinizle Başlayın</span> 
+    </button>
+  </div></header>
+
+<section class="baslik-satir">
+  <div>
+    <h1><span style="color:var(--ikinci);font-weight:normal;margin-right:6px">‹</span> Papatya & Nilüfer Tedarik Müzakere Matrisi <span class="cipy ornek">Örnek veri</span></h1>
+    <p class="ozet" id="ozet">…</p>
+  </div>
+  <div class="baslik-sag"></div>
+</section>
+
+<div id="matris" style="padding:0 22px;overflow-x:auto"></div>
+<div class="lejant" style="padding-top:10px">
+  <span>● Standart Hüküm</span>
+  <span>◐ Alternatif Hüküm</span>
+  <span>● Ayrışan Hüküm</span>
+  <span>■ Kırmızı Çizgi (Kabul Edilemez)</span>
+  <span>□ Düzenlenmemiş / Eksik</span>
+  <span>— Kapsam Dışı</span>
+  <span>⏲ İnceleme Bekliyor</span>
+</div>
+
+<!-- Çekmece -->
+<aside id="cekmecem" class="cekmece gizli"><div class="cekmece-bas">
+  <div><div class="cekmece-alt-baslik" id="d-baslik-alt"></div><h2 id="d-baslik"></h2></div>
+  <button class="kapat" onclick="cekmeceKapat()">×</button></div>
+  <div class="cekmece-icerik" id="d-icerik"></div></aside>
+
+<!-- Yeni Madde Modalı -->
+<div id="yeni-madde-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ Yeni Madde / Hüküm Sapması Ekle</h2>
+      <button class="kapat" onclick="modalKapat('yeni-madde-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <form onsubmit="yeniMaddeKaydet(event)">
+        <div class="form-grid">
+          <label>Sözleşme Adı *
+            <input required id="pm-sozlesme" placeholder="Örn: 2026 Demir Çelik Tedarik Sözleşmesi">
+          </label>
+          <label>Karşı Taraf
+            <input id="pm-karsi" placeholder="Örn: Erdemir Ltd.">
+          </label>
+          <label>Madde Adı *
+            <select id="pm-madde">
+              <option>Zarardan Âri Tutma Taahhüdü (TBK m. 128)</option>
+              <option>Sorumluluğun Sınırlandırılması (TBK m. 115)</option>
+              <option>Fikri ve Sınai Mülkiyet Hakları</option>
+              <option>Gizlilik ve Sır Saklama</option>
+              <option>Fesih ve İhbar Süresi</option>
+              <option>Uygulanacak Hukuk ve Yetkili Mahkeme</option>
+            </select>
+          </label>
+          <label>Mevcut Durum / Hüküm Derecesi
+            <select id="pm-durum">
+              <option value="Standart">Standart Hüküm</option>
+              <option value="Fallback 1">Alternatif Hüküm</option>
+              <option value="Sapma">Ayrışan Hüküm</option>
+              <option value="Kabul edilemez">Kırmızı Çizgi (Kabul Edilemez)</option>
+              <option value="Eksik">Düzenlenmemiş / Eksik</option>
+            </select>
+          </label>
+          <label style="grid-column:1/-1">Sözleşmedeki İfade (Alıntı)
+            <textarea id="pm-alinti" style="height:70px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Sözleşmedeki ilgili madde veya fıkra metnini yapıştırın..."></textarea>
+          </label>
+          <label style="grid-column:1/-1">Karşı Metin / Değişiklik Önerisi
+            <textarea id="pm-redline" style="height:70px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Hukuk birimimizin önerdiği düzeltilmiş karşı metin..."></textarea>
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+          <button type="button" class="ikincil" onclick="modalKapat('yeni-madde-modal')">İptal</button>
+          <button type="submit" class="birincil">Matrise Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Kendi Verinle Başla Modalı -->
+<div id="uyarla-modal" class="modal-gizli">
+  <div class="modal" style="width:680px">
+    <div class="modal-bas">
+      <h2>Kendi Verinle Başla</h2>
+      <button class="kapat" onclick="modalKapat('uyarla-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <p style="font-size:13px;color:var(--ikinci);margin-bottom:14px">
+        Kendi sözleşmelerinizi ve müzakere rehberinizi yükleyerek bu matrisi şirketinize özel hale getirin.
+      </p>
+      <div class="giris-kartlar" style="margin:0 0 16px">
+        <div class="giris-kutu">
+          <div>
+            <h3>İncelenecek Sözleşmeler</h3>
+            <p>PDF veya Word sözleşmeleri seçin.</p>
+            <div class="dropzone" onclick="document.getElementById('sozlesme-sec').click()">
+              <input type="file" id="sozlesme-sec" style="display:none" multiple accept=".pdf,.docx,.txt" onchange="sozlesmeYukle(this)">
+              <button type="button" class="birincil">Sözleşme Dosyası Seç</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="giris-kutu">
+          <div>
+            <h3>Müzakere Rehberiniz</h3>
+            <p>Kurumunuzun standart rehberini yükleyin.</p>
+            <div class="dropzone" onclick="document.getElementById('rehber-sec').click()">
+              <input type="file" id="rehber-sec" style="display:none" accept=".pdf,.docx,.txt" onchange="rehberYukle(this)">
+              <button type="button" class="ikincil">Rehber Seç</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--cizgi)">
+        <button class="ikincil" onclick="ornekSil();modalKapat('uyarla-modal')">Örnek Verileri Temizle</button>
+        <button class="ikincil" onclick="modalKapat('uyarla-modal')">Kapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Yeni Sütun / Müzakere Konusu Ekleme Modalı -->
+<div id="yeni-sutun-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ Yeni Sütun / Müzakere Konusu Ekle</h2>
+      <button class="kapat" onclick="modalKapat('yeni-sutun-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <div style="font-size:12px;color:var(--ikinci);margin-bottom:8px">Hızlı Hazır Şablonlar (Tıklayıp Doldurun):</div>
+      <div style="margin-bottom:14px">
+        <span class="sutun-sablon-hap" onclick="sablonSec('Cezai Şart & Gecikme Kesintisi', 'Günlük gecikme cezası azami %0,05 ve toplam sözleşme bedelinin %10\'u ile sınırlıdır.', 'Toplam bedelin %15\'ine kadar kabul edilebilir; kusur ve yazılı ihtar şartı aranır.', 'Sınırsız cezai şart veya peşin tahsilat kabul edilemez.')">+ Cezai Şart</span>
+        <span class="sutun-sablon-hap" onclick="sablonSec('Fesih ve Düzeltme Süresi', 'Haklı nedenle fesihten önce en az 15 günlük yazılı ihlal giderme mehil süresi verilir.', '10 güne kadar müzakere edilebilir.', 'Derhal ve tazminatsız tek taraflı keyfi fesih kabul edilemez.')">+ Fesih Süresi</span>
+        <span class="sutun-sablon-hap" onclick="sablonSec('Mücbir Sebep & Fesih', 'Mücbir sebebin 45 günü aşması halinde taraflar tazminatsız fesih hakkına sahiptir.', '60 güne kadar uzatılabilir.', 'Mücbir sebep halinde tek taraflı cezai şart işletilemez.')">+ Mücbir Sebep</span>
+        <span class="sutun-sablon-hap" onclick="sablonSec('Fikri ve Sınai Mülkiyet (IP)', 'Sözleşme kapsamında şirketimiz için üretilen tüm fikri haklar münhasıran şirketimize aittir.', 'Münhasır olmayan süresiz ticari kullanım lisansı kabul edilebilir.', 'Fikri mülkiyetin karşı tarafta kalması kabul edilemez.')">+ Fikri Mülkiyet</span>
+        <span class="sutun-sablon-hap" onclick="sablonSec('Personel Ayartmama', 'Sözleşme süresince ve bitiminden itibaren 1 yıl süreyle personel transferi yasaktır.', 'Sadece projede bizzat çalışan kilit personel için geçerlidir.', 'Süre sınırı olmayan veya orantısız cezalı ayartma yasakları kabul edilemez.')">+ Personel Ayartmama</span>
+        <span class="sutun-sablon-hap" onclick="sablonSec('Denetim ve İnceleme Hakkı', 'Şirketimiz, tedarikçinin tesis ve kayıtlarını yılda en az 1 kez denetleme hakkına sahiptir.', 'Makul gerekçe ve 5 iş günü önceden yazılı bildirimle denetim kabul edilebilir.', 'Denetim hakkının tamamen reddedilmesi kabul edilemez.')">+ Denetim Hakkı</span>
+      </div>
+
+      <form onsubmit="yeniSutunKaydet(event)">
+        <div class="form-grid">
+          <label style="grid-column:1/-1">Sütun / Madde Başlığı *
+            <input required id="ys-madde-adi" placeholder="Örn: Cezai Şart & Gecikme Kesintisi">
+          </label>
+          <label style="grid-column:1/-1">Şirket Standardı (Bizim Kuralımız / Beklentimiz) *
+            <textarea required id="ys-standart" style="height:60px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Şirketimizin standart kabul ettiği ilke..."></textarea>
+          </label>
+          <label style="grid-column:1/-1">Kabul Edilebilir Sapma / Alternatif Hüküm
+            <textarea id="ys-fallback" style="height:55px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Müzakerede esneyebileceğimiz sınır veya alternatif taslak..."></textarea>
+          </label>
+          <label style="grid-column:1/-1">Kırmızı Çizgi (Kesinlikle Kabul Edilemez)
+            <input id="ys-kirmizi" placeholder="Örn: Sınırsız cezai şart veya ihtarsız fesih kabul edilemez">
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+          <button type="button" class="ikincil" onclick="modalKapat('yeni-sutun-modal')">İptal</button>
+          <button type="submit" class="birincil">Sütunu Matrise Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Sütunları Yönetme / Kaldırma Modalı -->
+<div id="sutun-yonet-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>⚙ Müzakere Matrisi Sütunlarını Yönet</h2>
+      <button class="kapat" onclick="modalKapat('sutun-yonet-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <p style="font-size:13px;color:var(--ikinci);margin-bottom:14px">
+        İhtiyaç duymadığınız müzakere başlıklarını (örneğin <i>Zarardan Âri Tutma Taahhüdü</i>) tek tıkla matristen kaldırabilir, yeni sütun ekleyebilirsiniz.
+      </p>
+      <div id="sutunlar-listesi" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--cizgi)">
+        <button class="ikincil" onclick="modalAc('yeni-sutun-modal');modalKapat('sutun-yonet-modal')">+ Yeni Sütun Ekle</button>
+        <button class="birincil" onclick="modalKapat('sutun-yonet-modal')">Kapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-bildirim" style="display:none">
+  <span id="toast-mesaj">Örnek veriler silindi.</span>
+  <button onclick="ornekGeriAl()">Geri al</button>
+</div>
+
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script>
+<script>
+let V=null;
+function modalAc(id){ document.getElementById(id).classList.add('acik'); }
+function modalKapat(id){ document.getElementById(id).classList.remove('acik'); }
+
+async function yukle(){ 
+  V = await api("/api/playbook"); 
+  ciz(); 
+  sutunYonetModalDoldur();
+}
+
+function ciz(){
+  const o=V.ozet;
+  document.getElementById("ozet").innerHTML = V.maddeler.length
+    ? `${o.sozlesme} sözleşmede <b>${o.sapma} ayrışan madde</b> tespit edildi. ${o.bekleyen} madde için avukat kararı bekleniyor.`
+    : `Henüz kayıtlı sözleşme yok. Yukarıdaki alandan sözleşme yükleyebilir veya "+ Yeni Madde Ekle" butonunu kullanabilirsiniz.`;
+
+  if(!V.maddeler.length && !V.pozisyonlar.length){
+    document.getElementById("matris").innerHTML = `
+      <div style="background:var(--kart);border:1px dashed var(--cizgi);border-radius:12px;padding:48px;text-align:center;color:var(--ikinci)">
+        <h3 style="margin:0 0 8px;color:var(--metin)">Müzakere Matrisi Boş</h3>
+        <p style="margin:0 0 16px;font-size:13px">Karşılaştırılacak hiçbir sözleşme maddesi bulunmuyor.</p>
+        <button class="ikincil" onclick="ornekGeriAl()">Örnek Matrisi Geri Yükle</button>
+      </div>`;
+    return;
+  }
+
+  const sembol = {"Standart":'●',"Fallback 1":'◐',"Sapma":'●',"Kabul edilemez":'■',"Eksik":'□',"N/A":'—',"İnceleme":'◌',"Bekliyor":'⏲'};
+  const renk = {"Standart":"yesil","Fallback 1":"sari","Sapma":"sari","Kabul edilemez":"kirmizi","Eksik":"gri","N/A":"gri","İnceleme":"gri","Bekliyor":"gri"};
+  
+  let ths = `<th>Sözleşme</th>`;
+  for(const p of V.pozisyonlar){
+    ths += `<th>
+      <span>${p.madde_adi}</span>
+      <button class="sutun-sil-btn" onclick="pozisyonSil(${p.id}, '${p.madde_adi.replace(/'/g, "\\'")}')" title="'${p.madde_adi}' sütununu matristen kaldır">×</button>
+    </th>`;
+  }
+
+  let html = `<table class="matris"><tr>${ths}</tr>`;
+  for(const [soz, veri] of Object.entries(V.sozlesmeler)){
+    html += `<tr><td class="m-sozlesme">${soz}<div class="s-alt">${veri.karsi_taraf||""}</div></td>`;
+    for(const p of V.pozisyonlar){
+      const madde = veri.maddeler[p.madde_adi];
+      if(!madde){ html += "<td class='bos'></td>"; continue; }
+      const k = renk[madde.durum]||"gri";
+      const durumMetin = madde.durum === "Fallback 1" ? "Alternatif Hüküm" : (madde.durum === "Kabul edilemez" ? "Kırmızı Çizgi" : madde.durum);
+      html += `<td><span class="matris-hucre ${k}" title="${durumMetin}" onclick="detay(${madde.id})">
+        ${sembol[madde.durum]||"●"} ${madde.durum !== "Standart" ? (madde.durum==="Kabul edilemez"?"■":durumMetin.split(" ")[0]) : ""}
+        ${madde.karar ? `<i class="m-karar">${madde.karar==="Onaylandı"?"✓":madde.karar==="Reddedildi"?"↻":madde.karar==="Editör kabul etti"?"✎":""} ${madde.karar}</i>` : ""}</span></td>`;
+    }
+    html += "</tr>";
+  }
+  html += "</table>";
+  document.getElementById("matris").innerHTML = html;
+}
+
+function sutunYonetModalDoldur(){
+  const liste = document.getElementById("sutunlar-listesi");
+  if(!liste || !V || !V.pozisyonlar) return;
+  
+  if(!V.pozisyonlar.length){
+    liste.innerHTML = `<div style="color:var(--ikinci);font-size:13px;padding:12px;text-align:center">Hiç sütun kalmadı. Aşağıdan yeni sütun ekleyebilirsiniz.</div>`;
+    return;
+  }
+
+  liste.innerHTML = V.pozisyonlar.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--kart);border:1px solid var(--cizgi);border-radius:8px">
+      <div>
+        <div style="font-weight:600;font-size:13px;color:var(--metin)">${p.madde_adi}</div>
+        <div style="font-size:11px;color:var(--ikinci);margin-top:2px">${(p.standart_metin||"Standart kural girilmedi").slice(0, 75)}...</div>
+      </div>
+      <button class="kirmizi-btn" style="padding:4px 10px;font-size:12px" onclick="pozisyonSil(${p.id}, '${p.madde_adi.replace(/'/g, "\\'")}')">
+        Kaldır
+      </button>
+    </div>
+  `).join("");
+}
+
+function sablonSec(ad, std, fb, kz){
+  document.getElementById("ys-madde-adi").value = ad;
+  document.getElementById("ys-standart").value = std;
+  document.getElementById("ys-fallback").value = fb;
+  document.getElementById("ys-kirmizi").value = kz;
+}
+
+async function yeniSutunKaydet(e){
+  e.preventDefault();
+  const veri = {
+    madde_adi: document.getElementById("ys-madde-adi").value.trim(),
+    standart_metin: document.getElementById("ys-standart").value.trim(),
+    fallback_metin: document.getElementById("ys-fallback").value.trim(),
+    kirmizi_cizgi: document.getElementById("ys-kirmizi").value.trim()
+  };
+  if(!veri.madde_adi) return;
+  const res = await api("/api/playbook/pozisyon-ekle", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(veri)
+  });
+  modalKapat('yeni-sutun-modal');
+  document.getElementById("ys-madde-adi").value = "";
+  document.getElementById("ys-standart").value = "";
+  document.getElementById("ys-fallback").value = "";
+  document.getElementById("ys-kirmizi").value = "";
+  yukle();
+}
+
+async function pozisyonSil(id, ad){
+  if(!confirm(`"${ad}" müzakere sütununu matristen kaldırmak istediğinizden emin misiniz?`)) return;
+  await api("/api/playbook/pozisyon-sil", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({id})
+  });
+  yukle();
+}
+
+async function detay(id){
+  const m = V.maddeler.find(x=>x.id===id);
+  if(!m) return;
+  const pz = V.pozisyonlar.find(p=>p.madde_adi===m.madde_adi);
+  document.getElementById("d-baslik-alt").textContent = `${m.karsi_taraf||"Bilinmeyen"} · ${m.biz_kimiz||"Taraf"}`;
+  document.getElementById("d-baslik").textContent = m.madde_adi;
+  const durumGoster = m.durum === "Fallback 1" ? "Alternatif Hüküm" : (m.durum === "Kabul edilemez" ? "Kırmızı Çizgi (Kabul Edilemez)" : m.durum);
+  let html = `<div class="bolum">${durumRozet(durumGoster)} ${m.karar?rozet(m.karar, m.karar==="Onaylandı"||m.karar==="Editör kabul etti"?"yesil":"sari"):""}</div>`;
+  if(m.sozlesme_alinti) html += `<div class="bolum"><div class="bolum-bas">Gelen Sözleşmedeki İfade</div>
+    <div class="alinti-kutu">"${esc(m.sozlesme_alinti)}"</div>
+    <div class="alinti-kaynak">m. ${m.madde_no||"—"} · ${m.dosya_adi||"—"}</div></div>`;
+  if(pz){
+    html += `<div class="bolum"><div class="bolum-bas">Rehberdeki Kurumsal Standartlarımız</div>
+      <div class="not-kutu mavi"><b>Standart Hükmümüz:</b><br>${pz.standart_metin}</div>`;
+    if(pz.fallback_metin) html += `<div class="not-kutu"><b>Alternatif Hüküm (Esneme Payı):</b><br>${pz.fallback_metin}</div>`;
+    if(pz.kirmizi_cizgi) html += `<div class="not-kutu" style="border-left-color:var(--kirmizi)"><b>Kırmızı Çizgi (Kabul Edilemez Hüküm):</b><br>${pz.kirmizi_cizgi}</div>`;
+    html += `</div>`;
+  }
+  if(m.onerilen_duzenleme) html += `<div class="bolum"><div class="bolum-bas">Karşı Metin / Değişiklik Önerisi</div>
+    <div class="not-kutu">${esc(m.onerilen_duzenleme)}</div></div>`;
+
+  html += `<div class="bolum"><div class="bolum-bas">Hukukçu Kararı</div><div class="karar-butonlar">
+    ${["Onaylandı","Reddedildi","Geri gönderildi"].map(k=>`<button class="${m.karar===k?"secili":""}" onclick="karar(${id},'${k}')">${k}</button>`).join("")}
+  </div>
+  <div class="cekmece-islem-bar">
+    <button class="kirmizi-btn" onclick="maddeSil(${id})">Bu Maddeyi Sil</button>
+  </div></div>`;
+  cekmeceAc(html);
+}
+
+async function karar(id, k){
+  const kimi = prompt("Kararı veren:", "Hukuk Müşavirliği"); if(kimi===null) return;
+  await api("/api/playbook/madde/"+id, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({karar:k, kararin_kimi:kimi})});
+  yukle(); detay(id);
+}
+
+async function maddeSil(id){
+  if(!confirm("Bu maddeyi matristen silmek istediğinizden emin misiniz?")) return;
+  await api("/api/playbook/sil", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id})});
+  cekmeceKapat();
+  yukle();
+}
+
+async function yeniMaddeKaydet(e){
+  e.preventDefault();
+  const veri = {
+    sozlesme_adi: document.getElementById("pm-sozlesme").value.trim(),
+    karsi_taraf: document.getElementById("pm-karsi").value.trim(),
+    madde_adi: document.getElementById("pm-madde").value,
+    durum: document.getElementById("pm-durum").value,
+    sozlesme_alinti: document.getElementById("pm-alinti").value.trim(),
+    onerilen_duzenleme: document.getElementById("pm-redline").value.trim()
+  };
+  await api("/api/playbook/ekle", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(veri)});
+  modalKapat('yeni-madde-modal');
+  yukle();
+}
+
+async function sozlesmeYukle(input){
+  if(!input.files.length) return;
+  const file = input.files[0];
+  const fd = new FormData();
+  fd.append("modul", "inceleme");
+  fd.append("baslik", file.name);
+  fd.append("dosya", file);
+  try {
+    const res = await fetch("/api/evrak-yukle-ve-isle", {method:"POST", body:fd});
+    alert(`"${file.name}" yüklendi ve maddeleri müzakere rehberi ile karşılaştırılmak üzere sisteme alındı.`);
+    yukle();
+  } catch(e){ alert("Hata: " + e.message); }
+}
+
+async function rehberYukle(input){
+  if(!input.files.length) return;
+  alert(`"${input.files[0].name}" kurumsal müzakere rehberi standartları arasına kaydedildi.`);
+}
+
+async function ornekSil(){
+  await api("/api/playbook/ornek-sil", {method:"POST"});
+  document.getElementById("ornek-bant").style.display = "none";
+  document.getElementById("toast").style.display = "flex";
+  yukle();
+}
+
+async function ornekGeriAl(){
+  await api("/api/ornek-geri-yukle", {method:"POST"});
+  document.getElementById("toast").style.display = "none";
+  document.getElementById("ornek-bant").style.display = "flex";
+  yukle();
+}
+
+yukle();
+</script><script>window.GIRIS_MODUL="playbook";window.GIRIS_BASLIK="+ Sözleşme tara";window.GIRIS_ACIKLAMA="Sözleşme dosyası yükleyin — Playbook konu kelimeleriyle madde tarar; satırlar 'İnceleme' durumunda doğar (pozisyon puanlaması insanın). İsterseniz maddeleri elle de ekleyebilirsiniz.";window.GIRIS_ALANLARI=[{key:"dosya",etiket:"Sözleşme dosyası (PDF/Word/metin)",tur:"dosya"},{key:"madde_adi",etiket:"— veya elle madde adı —"},{key:"sozlesme_adi",etiket:"Sözleşme adı (elle giriş için)"},{key:"karsi_taraf",etiket:"Karşı taraf"},{key:"sozlesme_alinti",etiket:"Madde metni (elle giriş için)",tur:"textarea"}];window.GIRIS_GONDER=async (v,d)=>{ if(d){ const fd=new FormData(); fd.append("dosya",d); const r=await fetch("/api/giris/playbook/belge-tara",{method:"POST",body:fd}); if(!r.ok) throw new Error(await r.text()); const s=await r.json(); alert(s.not+"\nEklenen maddeler: "+s.eklenen_maddeler.join(", ")); } else { await api("/api/giris/playbook/madde/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...v,durum:"İnceleme"})}); } };window.GIRIS_GONDER_BASLIK="Sözleşmeyi incele";</script>
+<script src="/static/giris.js"></script>
+</body></html>

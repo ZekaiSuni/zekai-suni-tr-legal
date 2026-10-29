@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Dosya Panosu</title><link rel="stylesheet" href="/static/styles.css"></head><body>
+
+<div id="ornek-bant" class="ornek-bant">
+  <div><b>Örnek veri:</b> Bu örnek dava panosu değiştirilemez. Kendi müvekkil dosyalarınızla çalışmak için örneği silebilirsiniz.</div>
+  <button onclick="ornekSil()">Örnek verileri sil</button>
+</div>
+
+<header class="ust-bar"><div class="marka">Dosya Panosu <span class="cipy ornek" id="ornek-etiket">Örnek veri</span></div>
+  <div class="ust-sag">
+    <button class="ikincil" onclick="modalAc('yeni-dosya-modal')">+ Yeni Dosya Ekle</button>
+    <button class="birincil" style="background:#111;color:#fff;font-weight:600;display:flex;align-items:center;gap:6px" onclick="modalAc('yeni-dosya-modal')"><span>Kendi Verilerinizle Başlayın</span> </button>
+    <button class="ikincil" onclick="location.href='/api/export.ics'">⤓ Takvim</button></div></header>
+
+<!-- Dosya Yükleme Karşılama Alanı -->
+
+
+<section class="baslik-satir"><div><h1>Dava ve Takip Panosu</h1>
+  <p class="ozet" id="ozet"></p></div>
+  <div class="baslik-sag"><span class="cipy kirmizi-cipy" id="gec-cipi"></span></div>
+</section>
+
+<div class="tarih-seridi" id="serit"></div>
+<main id="pano" class="pano"></main>
+
+<!-- Çekmece -->
+<aside id="cekmecem" class="cekmece gizli"><div class="cekmece-bas">
+  <div><div class="cekmece-alt-baslik" id="d-baslik-alt"></div><h2 id="d-baslik"></h2></div>
+  <button class="kapat" onclick="cekmeceKapat()">×</button></div>
+  <div class="cekmece-icerik" id="d-icerik"></div></aside>
+
+<!-- Yeni Dosya Modalı -->
+<div id="yeni-dosya-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ Yeni Dava / İcra Dosyası Ekle</h2>
+      <button class="kapat" onclick="modalKapat('yeni-dosya-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <form id="form-yeni-dosya" onsubmit="yeniDosyaKaydet(event)">
+        <div class="form-grid">
+          <label style="grid-column:1/-1">Dosya Adı / Mahkeme ve Esas No *
+            <input required id="fd-ad" placeholder="Örn: 2024/512 E. - İstanbul 8. Asliye Ticaret Mahkemesi">
+          </label>
+          <label>Müvekkil *
+            <input required id="fd-muvekkil" placeholder="Örn: Anadolu Girişim A.Ş.">
+          </label>
+          <label>Karşı Taraf
+            <input id="fd-karsi" placeholder="Örn: Atlas Lojistik Ltd. Şti.">
+          </label>
+          <label>Zamanaşımı / hak düşürücü süre sonu — isteğe bağlı
+            <input id="fd-zamanasimi" type="date">
+          </label>
+          <label>Hukuk Alanı Kodu *
+            <select id="fd-alan">
+              <option value="TIC">TIC — Ticaret Hukuku</option>
+              <option value="IS">IS — İş Hukuku</option>
+              <option value="BOR">BOR — Borçlar & Sözleşme</option>
+              <option value="ICRA">ICRA — İcra & İflas</option>
+              <option value="CEZ">CEZ — Ceza Hukuku</option>
+              <option value="IDA">IDA — İdare & Vergi</option>
+            </select>
+          </label>
+          <label>Mevcut Aşama *
+            <select id="fd-asama"></select>
+          </label>
+          <label>Sorumlu Avukat
+            <input id="fd-sahip" placeholder="Örn: Av. Selin Karaca">
+          </label>
+          <label>Sonraki İşlem / Adım *
+            <input required id="fd-islem" placeholder="Örn: Bilirkişi raporuna itiraz dilekçesi sunulacak">
+          </label>
+          <label>Sonraki İşlem Tarihi *
+            <input required type="date" id="fd-tarih">
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+          <button type="button" class="ikincil" onclick="modalKapat('yeni-dosya-modal')">İptal</button>
+          <button type="submit" class="birincil">Dosyayı Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-bildirim" style="display:none">
+  <span id="toast-mesaj">Örnek dosyalar silindi.</span>
+  <button onclick="ornekGeriAl()">Geri al</button>
+</div>
+
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script>
+<script>
+let V=null;
+let TAKVIM_OFFSET = 0; // Gün bazında kaydırma (+/-)
+function modalAc(id){ document.getElementById(id).classList.add('acik'); }
+function modalKapat(id){ document.getElementById(id).classList.remove('acik'); }
+
+async function yukle(){ V = await api("/api/dosya"); ciz(); asamaSelectDoldur(); }
+
+function takvimKaydir(gun){
+  TAKVIM_OFFSET += gun;
+  ciz();
+}
+
+function takvimBugun(){
+  TAKVIM_OFFSET = 0;
+  ciz();
+}
+
+function ciz(){
+  const o = V.ozet;
+  document.getElementById("ozet").innerHTML = V.dosyalar.length
+    ? `${o.acik} açık dosya · <b>${o.dikkat} dikkat gerektiriyor</b>`
+    : `Panoda açık dosya bulunmuyor. Yukarıdan "+ Yeni Dosya Ekle"ye tıklayabilirsiniz.`;
+  document.getElementById("gec-cipi").innerHTML = `<b>${o.geciken}</b> gecikmiş işlem`;
+  
+  if(!V.dosyalar.length){
+    document.getElementById("serit").innerHTML = "";
+    document.getElementById("pano").innerHTML = `
+      <div style="background:var(--kart);border:1px dashed var(--cizgi);border-radius:12px;padding:48px;text-align:center;color:var(--ikinci);width:100%">
+        <h3 style="margin:0 0 8px;color:var(--metin)">Dosya Panosu Boş</h3>
+        <p style="margin:0 0 16px;font-size:13px">Takip edilen aktif dava veya icra dosyası bulunmamaktadır.</p>
+        <button class="ikincil" onclick="ornekGeriAl()">Örnek Dosyaları Geri Yükle</button>
+      </div>`;
+    return;
+  }
+
+  // Dinamik kaydırılabilir takvim penceresi (25 gün)
+  const gunler = [];
+  const bugun = new Date();
+  const baslangicTarihi = new Date(bugun);
+  baslangicTarihi.setDate(baslangicTarihi.getDate() - 3 + TAKVIM_OFFSET);
+
+  for(let i=0; i<25; i++){
+    const d = new Date(baslangicTarihi);
+    d.setDate(d.getDate() + i);
+    gunler.push(d);
+  }
+
+  const ilkGun = gunler[0];
+  const sonGun = gunler[gunler.length - 1];
+  const bugunStr = bugun.toISOString().slice(0, 10);
+
+  let seritNav = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 4px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <button type="button" class="ikincil" style="padding:4px 9px;font-size:12px;cursor:pointer" onclick="takvimKaydir(-14)" title="2 Hafta Geri">◀◀ 2 Hafta</button>
+        <button type="button" class="ikincil" style="padding:4px 9px;font-size:12px;cursor:pointer" onclick="takvimKaydir(-7)" title="1 Hafta Geri">◀ 1 Hafta</button>
+        <button type="button" class="ikincil" style="padding:4px 10px;font-size:12px;cursor:pointer;font-weight:600;${TAKVIM_OFFSET===0?'background:var(--mavi-zemin);color:var(--mavi);border-color:var(--mavi)':''}" onclick="takvimBugun()">Bugün</button>
+        <button type="button" class="ikincil" style="padding:4px 9px;font-size:12px;cursor:pointer" onclick="takvimKaydir(7)" title="1 Hafta İleri">1 Hafta ▶</button>
+        <button type="button" class="ikincil" style="padding:4px 9px;font-size:12px;cursor:pointer" onclick="takvimKaydir(14)" title="2 Hafta İleri">2 Hafta ▶▶</button>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:var(--metin)">
+        📅 ${ilkGun.getDate()} ${AYLAR[ilkGun.getMonth()]} ${ilkGun.getFullYear()} — ${sonGun.getDate()} ${AYLAR[sonGun.getMonth()]} ${sonGun.getFullYear()}
+        ${TAKVIM_OFFSET !== 0 ? `<span style="font-size:11px;font-weight:normal;color:var(--ikinci);margin-left:6px">(${TAKVIM_OFFSET > 0 ? '+' + TAKVIM_OFFSET : TAKVIM_OFFSET} gün)</span>` : ''}
+      </div>
+      <div style="font-size:12px;color:var(--ikinci)">
+        ${o.geciken > 0 ? `<span class="cipy kirmizi-cipy">${o.geciken} gecikmiş işlem</span>` : '<span style="color:var(--yesil)">Tüm süreler güncel</span>'}
+      </div>
+    </div>`;
+
+  let serit = seritNav + `<div class="serit-kutu">`;
+  serit += `<div class="serit-gunler">` + gunler.map(d=>{
+    const dIso = d.toISOString().slice(0, 10);
+    const isBugun = dIso === bugunStr;
+    const isHaftaSonu = [0, 6].includes(d.getDay());
+    const bgStil = isBugun ? 'style="background:rgba(43,92,230,0.12);border:1px solid var(--mavi);border-radius:4px"' : '';
+    return `<div class="sg ${isHaftaSonu ? 'hafta' : ''}" ${bgStil} title="${d.getDate()} ${AYLAR[d.getMonth()]} ${d.getFullYear()}">
+      <div style="${isBugun ? 'font-weight:bold;color:var(--mavi)' : ''}">${d.getDate()}</div>
+      <small style="${isBugun ? 'color:var(--mavi);font-weight:600' : ''}">${AYLAR[d.getMonth()]}</small>
+    </div>`;
+  }).join("") + `</div><div class="serit-olaylar">`;
+
+  for(const f of V.dosyalar.filter(x=>x.sonraki_tarih)){
+    const fTarih = new Date(f.sonraki_tarih);
+    const idx = Math.round((fTarih - gunler[0])/86400000);
+    if(idx >= 0 && idx < gunler.length){
+      const renk = f.geciken ? "kirmizi" : (f.kalan_gun <= 7 ? "sari" : f.ikinci_tarih ? "mavi" : "gri");
+      serit += `<div class="serit-blok ${renk}" 
+                     style="left:${idx*(100/gunler.length)}%;cursor:pointer" 
+                     title="${esc(f.ad)}: ${esc(f.sonraki_islem)} (${trTarih(f.sonraki_tarih)}) - Tıklayıp Aç"
+                     onclick="detayById(${f.id})">
+                     ${f.alan_kodu}
+               </div>`;
+    }
+  }
+  document.getElementById("serit").innerHTML = serit + "</div></div>";
+
+  const pano = document.getElementById("pano");
+  pano.innerHTML = "";
+  for(const asama of V.asamalar){
+    const dosyalar = V.dosyalar.filter(d=>d.asama===asama);
+    const kolon = document.createElement("div");
+    kolon.className = "kolon";
+    kolon.innerHTML = `<div class="kolon-bas">${asama} <b>${dosyalar.length}</b></div>`;
+    for(const f of dosyalar){
+      const kart = document.createElement("div");
+      kart.className = "kart" + (f.geciken ? " geciken" : "");
+      kart.innerHTML = `
+        <div class="kart-bas">${esc(f.ad)} <span class="mini-cipy mini-sahip">${esc(f.alan_kodu)}</span></div>
+        <div class="kart-satir">→ ${esc(f.sonraki_islem||"—")}
+          <span style="float:right;color:${f.geciken?"var(--kirmizi)":"var(--ikinci)"}">
+          ${f.geciken?Math.abs(f.kalan_gun)+" gün gecikme":f.kalan_gun!==null?(f.kalan_gun===0?"bugün":f.kalan_gun+" gün"):""}</span></div>
+        ${f.ikinci_islem?`<div class="kart-satir">☐ ${esc(f.ikinci_islem)} <span style="float:right;color:var(--ikinci)">${trTarih(f.ikinci_tarih)}</span></div>`:""}
+        <div class="s-rozetler">${f.zamanaasimi_tarihi?`<span class="mini-cipy" style="background:${f.zamanaasimi_gecisti?"var(--kirmizi-zemin);color:var(--kirmizi)":(f.zamanaasimi_gun<=30?"var(--sari-zemin);color:var(--sari)":"var(--gri-zemin);color:var(--ikinci)")}">Zamanaşımı: ${trTarih(f.zamanaasimi_tarihi)} · ${f.zamanaasimi_gecisti?"Süresi geçti":f.zamanaasimi_gun+" gün"}</span>`:""}
+          ${f.inceleme?'<span class="mini-cipy mini-inceleme">İncele</span>':""}
+          ${f.tarih_teyit?'<span class="mini-cipy mini-duzeltildi">Tarihler teyit edilmeli</span>':""}
+          ${f.sahibi?`<span class="mini-cipy mini-sahip">${f.sahibi}</span>`:""}</div>`;
+      kart.addEventListener("click", ()=>detay(f));
+      kolon.appendChild(kart);
+    }
+    pano.appendChild(kolon);
+  }
+}
+
+// Aşama formu tek kaynaktan doldur (V.asamalar) — bir kez
+function asamaSelectDoldur(){
+  const sel = document.getElementById("fd-asama");
+  if (V && V.asamalar && sel && !sel.options.length) {
+    sel.innerHTML = V.asamalar.map(a=>`<option>${a}</option>`).join("");
+  }
+}
+
+function detayById(id){
+  const f = V.dosyalar.find(x=>x.id===id);
+  if(f) detay(f);
+}
+
+function detay(f){
+  document.getElementById("d-baslik-alt").textContent = `${f.alan_kodu} · Sorumlu: ${f.sahibi||"Atanmadı"}`;
+  document.getElementById("d-baslik").textContent = f.ad;
+  let html = `
+    <div class="bolum">
+      <div class="bolum-bas">Mevcut Aşama</div>
+      <select onchange="asamaDegistir(${f.id}, this.value)" style="width:100%;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:14px">
+        ${V.asamalar.map(a=>`<option ${a===f.asama?"selected":""}>${a}</option>`).join("")}
+      </select>
+    </div>
+    <div class="bolum">
+      <div class="bolum-bas">Sonraki İşlem & Süre</div>
+      <div class="not-kutu"><b>${esc(f.sonraki_islem||"İşlem belirtilmedi")}</b><br>Son Tarih: ${f.sonraki_tarih?trTarih(f.sonraki_tarih):"—"}</div>
+    </div>
+    ${f.zamanaasimi_tarihi?`<div class="bolum"><div class="bolum-bas">Zamanaşımı / Hak Düşürücü Süre</div>
+      <div class="not-kutu" style="border-left-color:${f.zamanaasimi_gecisti?"var(--kirmizi)":"var(--sari)"}">
+      ${trTarih(f.zamanaasimi_tarihi)} · ${f.zamanaasimi_gecisti?"SÜRESİ GEÇTİ":f.zamanaasimi_gun+" gün kaldı"}
+      (gün hesabı deterministik motorla; LLM'e hesaplatılmaz)</div></div>`:""}
+    <div class="cekmece-islem-bar">
+      <button class="kirmizi-btn" onclick="dosyaSil(${f.id})">Bu Dosyayı Sil</button>
+    </div>`;
+  cekmeceAc(html);
+}
+
+async function asamaDegistir(id, asama){
+  await api("/api/dosya/guncelle", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id, asama})});
+  yukle();
+}
+
+async function dosyaSil(id){
+  if(!confirm("Bu dava dosyasını silmek istediğinizden emin misiniz?")) return;
+  await api("/api/dosya/sil", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id})});
+  cekmeceKapat();
+  yukle();
+}
+
+async function yeniDosyaKaydet(e){
+  e.preventDefault();
+  const veri = {
+    ad: document.getElementById("fd-ad").value.trim(),
+    muvekkil: document.getElementById("fd-muvekkil").value.trim(),
+    karsi_taraf: document.getElementById("fd-karsi").value.trim(),
+    alan_kodu: document.getElementById("fd-alan").value,
+    asama: document.getElementById("fd-asama").value,
+    sahibi: document.getElementById("fd-sahip").value.trim() || "Nöbetçi Avukat",
+    sonraki_islem: document.getElementById("fd-islem").value.trim(),
+    sonraki_tarih: document.getElementById("fd-tarih").value,
+    zamanasimi_tarihi: document.getElementById("fd-zamanasimi").value || null
+  };
+  await api("/api/dosya/ekle", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(veri)});
+  modalKapat('yeni-dosya-modal');
+  yukle();
+}
+
+async function evrakYukle(input){
+  if(!input.files.length) return;
+  alert(`"${input.files[0].name}" yüklendi; duruşma günü ve tensip süreleri çıkarılıyor.`);
+}
+
+async function ornekSil(){
+  await api("/api/dosya/ornek-sil", {method:"POST"});
+  document.getElementById("ornek-bant").style.display = "none";
+  document.getElementById("toast").style.display = "flex";
+  yukle();
+}
+
+async function ornekGeriAl(){
+  if(!confirm("DİKKAT: Bu işlem TÜM modüllerdeki (dosya, sözleşme, hukuk masası, playbook…) mevcut kayıtları silip örnek veriyle değiştirir. Emin misiniz?")) return;
+  await api("/api/ornek-geri-yukle", {method:"POST"});
+  document.getElementById("toast").style.display = "none";
+  document.getElementById("ornek-bant").style.display = "flex";
+  yukle();
+}
+
+yukle();
+</script><style>
+.tarih-seridi{padding:0 22px 10px}
+.serit-kutu{background:var(--kart);border:1px solid var(--cizgi);border-radius:12px;padding:12px;position:relative}
+.serit-gunler{display:flex;margin-top:8px}
+.sg{flex:1;text-align:center;font-size:11px;border-right:1px dashed var(--cizgi);color:var(--ikinci)}
+.sg.hafta{background:var(--gri-zemin)}
+.serit-olaylar{position:relative;height:18px;margin-top:4px}
+.serit-blok{position:absolute;width:26px;height:16px;border-radius:4px;color:#fff;font-size:10px;text-align:center;line-height:16px;transform:translateX(-50%)}
+.serit-blok.kirmizi{background:var(--kirmizi)} .serit-blok.sari{background:#c79100} .serit-blok.mavi{background:var(--mavi)} .serit-blok.gri{background:var(--ikinci)}
+.pano{display:flex;gap:14px;padding:0 22px 90px;overflow-x:auto;align-items:flex-start}
+.kolon{background:var(--gri-zemin);border-radius:12px;padding:10px;min-width:250px;flex:1}
+.kolon-bas{font-weight:700;font-size:13px;margin-bottom:8px}
+.kolon-bas b{float:right;color:var(--ikinci)}
+.kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:10px;padding:10px;margin-bottom:8px;font-size:12px;cursor:pointer}
+.kart:hover{border-color:#c9c2b8}
+.kart.geciken{border-left:4px solid var(--kirmizi)}
+.kart-bas{font-weight:600;margin-bottom:5px}
+.kart-satir{color:var(--ikinci);margin-bottom:4px;line-height:1.4}
+</style><script>window.GIRIS_MODUL="dosya";window.GIRIS_BASLIK="+ Dosya ekle";window.GIRIS_ALANLARI=[{key:"ad",etiket:"Dosya adı"},{key:"musteri",etiket:"Müşteri"},{key:"alan_kodu",etiket:"Alan kodu",tur:"select",secenekler:["TİC","AİLE","İŞ","TAŞ","KAMU","CEZ"]},{key:"asama",etiket:"Aşama",tur:"select",secenekler:["Aşamasız","Yeni","Aktif","Başkalarını bekliyor","Kapatıldı"]},{key:"sonraki_islem",etiket:"Sonraki işlem"},{key:"sonraki_tarih",etiket:"Sonraki tarih",tur:"date"},{key:"sahibi",etiket:"Sahibi"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/dosya/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Dosyayı ekle";</script>
+<script src="/static/giris.js"></script>
+</body></html>

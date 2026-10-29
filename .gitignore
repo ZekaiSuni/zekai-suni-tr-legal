@@ -1,0 +1,15 @@
+# --- veri ve çalışma zamanı (Pilot denetimi: dışarıda bırakma listesi) ---
+data/*
+!data/kronoloji-kaynak.txt
+*.db
+*.db-wal
+*.db-shm
+*.db.bak*
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- Anthropic orijinal prompt dökümü (35 MB, türev içerik — yayına girmez) ---
+prompts/orijinal-ham-json/
+prompts/00-ORIJINAL-36-ARAC-TUM-PROMPTLAR.md

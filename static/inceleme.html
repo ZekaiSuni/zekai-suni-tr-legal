@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Tablo İnceleme</title><link rel="stylesheet" href="/static/styles.css"></head><body>
+
+<div id="ornek-bant" class="ornek-bant">
+  <div><b>Örnek veri:</b> Bu örnek inceleme değiştirilemez. Kendi sözleşmelerinizi yüklemek için örneği temizleyebilirsiniz.</div>
+  <button onclick="ornekSil()">Örnek verileri sil</button>
+</div>
+
+<header class="ust-bar"><div class="marka">Sözleşme İnceleme Tablosu <span class="cipy ornek" id="ornek-etiket">Örnek veri</span></div>
+  <div class="ust-sag">
+    <button class="ikincil" onclick="modalAc('sutun-yonet-modal')">⚙ Sütunları Yönet</button>
+    <button class="ikincil" onclick="modalAc('yeni-sutun-modal')">+ Yeni Sütun</button>
+    <button class="ikincil" onclick="manuelModalAc()">+ Satır Ekle</button>
+    <button class="birincil" style="background:#111;color:#fff;font-weight:600;display:flex;align-items:center;gap:6px" onclick="modalAc('uyarla-modal')">
+      <span>Kendi Verilerinizle Başlayın</span> 
+    </button>
+  </div></header>
+
+<section class="baslik-satir">
+  <div>
+    <h1><span style="color:var(--ikinci);font-weight:normal;margin-right:6px">‹</span> <span id="ad">Papatya & Nilüfer Portföy İncelemesi</span> <span class="cipy ornek">Örnek veri</span></h1>
+    <p class="ozet" id="ozet"></p>
+  </div>
+  <div class="baslik-sag">
+    <span class="cipy" id="secili-cipi">0 seçili</span>
+    <button class="ikincil" onclick="toplu('inceleme')">İncelemeye al</button>
+    <button class="ikincil" onclick="toplu('sahip')">Sahibe ata</button>
+  </div>
+</section>
+
+<main id="liste"></main>
+
+<!-- Çekmece (Detay, Düzenleme ve Silme) -->
+<aside id="cekmecem" class="cekmece gizli">
+  <div class="cekmece-bas">
+    <div><div class="cekmece-alt-baslik" id="d-baslik-alt"></div><h2 id="d-baslik"></h2></div>
+    <button class="kapat" onclick="cekmeceKapat()">×</button>
+  </div>
+  <div class="cekmece-icerik" id="d-icerik"></div>
+</aside>
+
+<!-- Metin Yapıştırma Modalı -->
+<div id="metin-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>Sözleşme Metni Yapıştır</h2>
+      <button class="kapat" onclick="modalKapat('metin-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <p class="uyari" style="background:var(--mavi-zemin);color:var(--mavi)">
+        Sözleşme maddelerini veya tüm metni yapıştırın. Maddeler, taraflar, cezai şartlar ve sorumluluk tavanı otomatik çıkarılacaktır.
+      </p>
+      <label style="font-size:12px;color:var(--ikinci);display:block;margin-top:10px">Belge Adı / Başlık *</label>
+      <input id="pm-ad" placeholder="Örn: Atlas Lojistik Tedarik Sözleşmesi" style="width:100%;padding:8px;border:1px solid var(--cizgi);border-radius:8px;margin-bottom:10px">
+      <label style="font-size:12px;color:var(--ikinci);display:block">Sözleşme Metni *</label>
+      <textarea id="pm-metin" style="width:100%;height:180px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-family:monospace;font-size:13px" placeholder="Sözleşme metnini buraya yapıştırın..."></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px">
+        <button class="ikincil" onclick="modalKapat('metin-modal')">İptal</button>
+        <button class="birincil" onclick="metinGonder()">Oku ve Tabloya Ekle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Manuel Satır Ekleme Modalı -->
+<div id="manuel-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ Elle Yeni İnceleme Satırı Ekle</h2>
+      <button class="kapat" onclick="modalKapat('manuel-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <form onsubmit="manuelKaydet(event)">
+        <div class="form-grid">
+          <label style="grid-column:1/-1">Belge Adı *
+            <input required id="fm-belge" placeholder="Örn: 2026-Hizmet-Alimi.pdf">
+          </label>
+          <label>Karşı Taraf
+            <input id="fm-karsi" placeholder="Örn: Yıldız Yazılım A.Ş.">
+          </label>
+          <label>Sözleşme Türü
+            <input id="fm-tur" placeholder="Örn: Hizmet / Lisans">
+          </label>
+          <label>Yürürlük Tarihi
+            <input id="fm-yururluk" placeholder="Örn: 01.01.2026">
+          </label>
+          <label>Bitiş / Süre
+            <input id="fm-sure" placeholder="Örn: 1 Yıl / Belirsiz">
+          </label>
+          <label>Otomatik Uzatma
+            <select id="fm-uzatma"><option>Hayır</option><option>Evet</option></select>
+          </label>
+          <label>Uygulanacak Hukuk
+            <input id="fm-hukuk" value="Türk Hukuku (İstanbul)">
+          </label>
+          <label style="grid-column:1/-1">Sorumluluk Tavanı / Maddesi
+            <input id="fm-tavan" placeholder="Örn: Son 12 aylık fatura bedeli ile sınırlı">
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+          <button type="button" class="ikincil" onclick="modalKapat('manuel-modal')">İptal</button>
+          <button type="submit" class="birincil">Satırı Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Kendi Verinle Başla Modalı -->
+<div id="uyarla-modal" class="modal-gizli">
+  <div class="modal" style="width:680px">
+    <div class="modal-bas">
+      <h2>Kendi Verinle Başla</h2>
+      <button class="kapat" onclick="modalKapat('uyarla-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <p style="font-size:13px;color:var(--ikinci);margin-bottom:14px">
+        Kendi sözleşmelerinizi yükleyerek portföy inceleme tablosunu kurumunuza özel hale getirin.
+      </p>
+      <div class="giris-kartlar" style="margin:0 0 16px">
+        <div class="giris-kutu">
+          <div>
+            <h3>Sözleşmeleri Yükle</h3>
+            <p>PDF veya Word (.docx) dosyaları seçin.</p>
+            <div class="dropzone" onclick="document.getElementById('dosya-secici').click()">
+              <input type="file" id="dosya-secici" style="display:none" multiple accept=".pdf,.docx,.txt" onchange="dosyaSecildi(this);modalKapat('uyarla-modal')">
+              <button type="button" class="birincil">Dosya Seç</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="giris-kutu">
+          <div>
+            <h3>Metin Yapıştır</h3>
+            <p>Sözleşme maddelerini doğrudan yapıştırarak inceleyin.</p>
+            <button type="button" class="ikincil" style="width:100%;padding:12px;margin-top:14px" onclick="metinModalAc();modalKapat('uyarla-modal')">Metin Yapıştırma Alanını Aç</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--cizgi)">
+        <button class="ikincil" onclick="ornekSil();modalKapat('uyarla-modal')">Örnek Verileri Temizle</button>
+        <button class="ikincil" onclick="modalKapat('uyarla-modal')">Kapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Yeni Sütun Ekleme Modalı -->
+<div id="yeni-sutun-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ İnceleme Tablosuna Yeni Sütun Ekle</h2>
+      <button class="kapat" onclick="modalKapat('yeni-sutun-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <div style="font-size:12px;color:var(--ikinci);margin-bottom:8px">Hızlı Hazır Sütunlar:</div>
+      <div style="margin-bottom:14px">
+        <span class="sutun-sablon-hap" onclick="document.getElementById('inc-ys-ad').value='Cezai Şart & Kesintiler'">+ Cezai Şart</span>
+        <span class="sutun-sablon-hap" onclick="document.getElementById('inc-ys-ad').value='Fesih & İhbar Süresi'">+ Fesih Süresi</span>
+        <span class="sutun-sablon-hap" onclick="document.getElementById('inc-ys-ad').value='Mücbir Sebep Koşulları'">+ Mücbir Sebep</span>
+        <span class="sutun-sablon-hap" onclick="document.getElementById('inc-ys-ad').value='Teminat Mektubu / Garanti'">+ Teminat Mektubu</span>
+        <span class="sutun-sablon-hap" onclick="document.getElementById('inc-ys-ad').value='Fikri ve Sınai Mülkiyet (IP)'">+ Fikri Mülkiyet</span>
+        <span class="sutun-sablon-hap" onclick="document.getElementById('inc-ys-ad').value='Rekabet Yasağı / Ayartmama'">+ Rekabet Yasağı</span>
+      </div>
+
+      <form onsubmit="yeniSutunEkle(event)">
+        <label style="font-size:12px;color:var(--ikinci);display:block;margin-bottom:6px">Sütun Başlığı *</label>
+        <input required id="inc-ys-ad" placeholder="Örn: Cezai Şart & Gecikme Kesintisi" style="width:100%;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px;margin-bottom:14px">
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button type="button" class="ikincil" onclick="modalKapat('yeni-sutun-modal')">İptal</button>
+          <button type="submit" class="birincil">Sütunu Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Sütunları Yönetme Modalı -->
+<div id="sutun-yonet-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>⚙ İnceleme Tablosu Sütunlarını Yönet</h2>
+      <button class="kapat" onclick="modalKapat('sutun-yonet-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <p style="font-size:13px;color:var(--ikinci);margin-bottom:14px">
+        Tabloda görmek istemediğiniz sütunları gizleyebilir veya kaldırabilirsiniz.
+      </p>
+      <div id="sutunlar-listesi" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--cizgi)">
+        <button class="ikincil" onclick="sutunlariSifirla()">Varsayılan Sütunlara Dön</button>
+        <button class="birincil" onclick="modalKapat('sutun-yonet-modal')">Tamam</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-bildirim" style="display:none">
+  <span id="toast-mesaj">Örnek veriler silindi.</span>
+  <button onclick="ornekGeriAl()">Geri al</button>
+</div>
+
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script>
+<script>
+let V=null, SECILILER=new Set();
+
+function modalAc(id){ document.getElementById(id).classList.add('acik'); }
+function modalKapat(id){ document.getElementById(id).classList.remove('acik'); }
+function metinModalAc(){ modalAc('metin-modal'); }
+function manuelModalAc(){ modalAc('manuel-modal'); }
+
+const VARSAYILAN_KOLONLAR = [
+  ["belge_adi","Belge"],
+  ["karsi_taraf","Karşı taraf"],
+  ["sozlesme_turu","Sözleşme türü"],
+  ["yururluk","Yürürlük"],
+  ["bitis_sure","Bitiş veya süre"],
+  ["otomatik_uzatma","Oto. uzatma"],
+  ["taban_hukuk","Uygulanacak hukuk"],
+  ["sorumluluk_tavani","Sorumluluk tavanı"],
+  ["mali_yukumluluk","Mali yükümlülük"],
+  ["notlar","Ekip notları"]
+];
+
+function aktifKolonlariGetir(){
+  try {
+    const k = localStorage.getItem("zekai_inceleme_kolonlar");
+    if(k) return JSON.parse(k);
+  } catch(e){}
+  return [...VARSAYILAN_KOLONLAR];
+}
+
+function aktifKolonlariKaydet(kolonlar){
+  localStorage.setItem("zekai_inceleme_kolonlar", JSON.stringify(kolonlar));
+}
+
+function sutunYonetModalDoldur(){
+  const liste = document.getElementById("sutunlar-listesi");
+  if(!liste) return;
+  const kolonlar = aktifKolonlariGetir();
+  liste.innerHTML = kolonlar.map(([k, a], idx) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--kart);border:1px solid var(--cizgi);border-radius:6px">
+      <span style="font-weight:600;font-size:13px">${a}</span>
+      ${k !== "belge_adi" ? `
+        <button class="kirmizi-btn" style="padding:3px 8px;font-size:11px" onclick="sutunSil('${k}')">Kaldır</button>
+      ` : '<span style="font-size:11px;color:var(--ikinci)">(Zorunlu)</span>'}
+    </div>
+  `).join("");
+}
+
+function sutunSil(anahtar){
+  let kolonlar = aktifKolonlariGetir().filter(([k]) => k !== anahtar);
+  aktifKolonlariKaydet(kolonlar);
+  ciz();
+  sutunYonetModalDoldur();
+}
+
+function sutunlariSifirla(){
+  aktifKolonlariKaydet(VARSAYILAN_KOLONLAR);
+  ciz();
+  sutunYonetModalDoldur();
+}
+
+function yeniSutunEkle(e){
+  e.preventDefault();
+  const ad = document.getElementById("inc-ys-ad").value.trim();
+  if(!ad) return;
+  const anahtar = "ozel_" + Date.now();
+  const kolonlar = aktifKolonlariGetir();
+  kolonlar.push([anahtar, ad]);
+  aktifKolonlariKaydet(kolonlar);
+  modalKapat('yeni-sutun-modal');
+  document.getElementById("inc-ys-ad").value = "";
+  ciz();
+  sutunYonetModalDoldur();
+}
+
+async function yukle(){
+  V = await api("/api/inceleme");
+  ciz();
+  sutunYonetModalDoldur();
+}
+
+function ciz(){
+  const inc = V.incelemeler[0];
+  document.getElementById("ad").textContent = inc ? inc.ad : "İnceleme Panosu";
+  const ciddi = V.satirlar.filter(s=>s.ciddi_konu).length;
+  document.getElementById("ozet").innerHTML = V.satirlar.length
+    ? `${V.satirlar.length} belge işlendi. <b class="kirmizi" style="color:var(--kirmizi)">${ciddi} belgede ciddi konu</b> · ${V.satirlar.filter(s=>s.inceleme_gerekli).length} hücre inceleme bekliyor`
+    : `Henüz işlenmiş belge yok. Yukarıdaki alandan sözleşme yükleyebilir veya metin yapıştırabilirsiniz.`;
+  document.getElementById("secili-cipi").textContent = `${SECILILER.size} seçili`;
+
+  const kolonlar = aktifKolonlariGetir();
+  
+  if(!V.satirlar.length){
+    document.getElementById("liste").innerHTML = `
+      <div style="background:var(--kart);border:1px dashed var(--cizgi);border-radius:12px;padding:48px;text-align:center;color:var(--ikinci)">
+        <h3 style="margin:0 0 8px;color:var(--metin)">İncelenecek Sözleşme Bulunmuyor</h3>
+        <p style="margin:0 0 16px;font-size:13px">Yukarıdaki alana PDF/Word sürükleyebilir veya "Örnek verileri geri yükle" butonunu kullanabilirsiniz.</p>
+        <button class="ikincil" onclick="ornekGeriAl()">Örnek Verileri Geri Yükle</button>
+      </div>`;
+    return;
+  }
+
+  let ths = `<th></th>`;
+  for(const [k, a] of kolonlar){
+    ths += `<th>
+      <span>${a}</span>
+      ${k !== "belge_adi" ? `<button class="sutun-sil-btn" onclick="sutunSil('${k}')" title="'${a}' sütununu kaldır">×</button>` : ""}
+    </th>`;
+  }
+
+  let html = `<table class="matris"><tr>${ths}</tr>`;
+  for(const s of V.satirlar){
+    html += `<tr class="${s.ciddi_konu?"ciddi-satir":""}"><td><input type="checkbox" onchange="sec(${s.id}, this)" ${SECILILER.has(s.id)?"checked":""}>
+      ${s.ciddi_konu?'<span class="mini-cipy" style="background:var(--kirmizi-zemin);color:var(--kirmizi)">Ciddi konu</span>':""}
+      ${s.okunmayan_sayfa?`<div class="alinti-kaynak">${s.okunmayan_sayfa}. sayfa okunmadı</div>`:""}</td>`;
+    for(const [k, a] of kolonlar){
+      if(k==="belge_adi"){
+        html += `<td onclick="detay(${s.id})" style="cursor:pointer;font-weight:600"><b>${s.belge_adi}</b></td>`;
+        continue;
+      }
+      const deger = s[k]||"";
+      const eksik = deger.startsWith("Bulunamadı");
+      html += `<td onclick="detay(${s.id})" style="cursor:pointer">
+        ${deger? (eksik?`<span style="color:var(--ikinci)">${deger}</span>`:deger.length>140?deger.slice(0,140)+"…":deger) : `<span style="color:var(--ikinci)">—</span>`}
+        ${s.inceleme_gerekli && ["sorumluluk_tavani","mali_yukumluluk"].includes(k)?' <span class="mini-cipy mini-inceleme">İncele</span>':""}</td>`;
+    }
+    html += "</tr>";
+  }
+  document.getElementById("liste").innerHTML = html + "</table>";
+}
+
+function sec(id, kutu){ kutu.checked ? SECILILER.add(id) : SECILILER.delete(id); ciz(); }
+async function toplu(islem){
+  if(!SECILILER.size) return alert("Önce satır seçin");
+  let kimi = "";
+  if(islem==="sahip"){ kimi = prompt("Sahip:", "Hukuk · "); if(!kimi) return; }
+  const r = await api("/api/inceleme/toplu", {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ids: [...SECILILER], islem, sahibi: kimi})});
+  alert(`${r.guncellenen} satır güncellendi.`);
+  SECILILER.clear();
+  yukle();
+}
+
+function detay(id){
+  const s = V.satirlar.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById("d-baslik-alt").textContent = s.karsi_taraf || "Karşı Taraf Belirtilmedi";
+  document.getElementById("d-baslik").textContent = s.belge_adi;
+  const kolonlar = [["sozlesme_turu","Sözleşme türü"],["yururluk","Yürürlük"],["bitis_sure","Bitiş veya süre"],["otomatik_uzatma","Otomatik uzatma"],["taban_hukuk","Uygulanacak hukuk"],["kontrol_degisikligi","Kontrol değişikliği"],["devir","Devir"],["sorumluluk_tavani","Sorumluluk tavanı"],["mali_yukumluluk","Mali yükümlülük"],["notlar","Ekip notları"]];
+  
+  cekmeceAc(`
+    ${s.ciddi_konu?'<div class="bolum">'+rozet("Ciddi konu","kirmizi")+" — müzakere öncesi mutlaka değerlendirin.</div>":""}
+    ${kolonlar.map(([k,a])=>`
+      <div class="bolum">
+        <div class="bolum-bas">${a}</div>
+        <div style="font-size:13px;line-height:1.6">${s[k]||'<span style="color:var(--ikinci)">—</span>'}</div>
+      </div>`).join("")}
+    <div class="cekmece-islem-bar">
+      <button class="ikincil" onclick="satirDuzenle(${s.id})">Düzenle</button>
+      <button class="kirmizi-btn" onclick="satirSil(${s.id})">Bu Belgeyi Sil</button>
+    </div>`);
+}
+
+async function satirSil(id){
+  if(!confirm("Bu sözleşme incelemesini silmek istediğinizden emin misiniz?")) return;
+  await api("/api/inceleme/sil", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id})});
+  cekmeceKapat();
+  yukle();
+}
+
+async function satirDuzenle(id){
+  const s = V.satirlar.find(x=>x.id===id);
+  const yeniTavan = prompt("Sorumluluk Tavanını Düzenle:", s.sorumluluk_tavani || "");
+  if(yeniTavan === null) return;
+  await api("/api/inceleme/guncelle", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({id: s.id, sorumluluk_tavani: yeniTavan})
+  });
+  yukle();
+  detay(id);
+}
+
+// Dropzone & Dosya Yükleme
+const dropzone = document.getElementById("dropzone");
+if (dropzone) {
+['dragenter', 'dragover'].forEach(name => {
+  dropzone.addEventListener(name, (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); });
+});
+['dragleave', 'drop'].forEach(name => {
+  dropzone.addEventListener(name, (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); });
+});
+dropzone.addEventListener('drop', (e)=>{
+  const files = e.dataTransfer.files;
+  if(files.length) dosyayiGonder(files[0]);
+});
+}
+
+function dosyaSecildi(input){
+  if(input.files.length) dosyayiGonder(input.files[0]);
+}
+
+async function dosyayiGonder(file){
+  const fd = new FormData();
+  fd.append("modul", "inceleme");
+  fd.append("baslik", file.name);
+  fd.append("dosya", file);
+
+  const baslikDiv = document.querySelector(".giris-baslik");
+  const eskiMetin = baslikDiv.textContent;
+  baslikDiv.textContent = "⏳ Belge okunuyor ve inceleniyor ve inceleniyor...";
+  try {
+    const res = await fetch("/api/evrak-yukle-ve-isle", {method:"POST", body:fd});
+    const veri = await res.json();
+    alert(veri.mesaj || "Belge başarıyla tabloya eklendi!");
+    yukle();
+  } catch(err){
+    alert("Yükleme hatası: " + err.message);
+  } finally {
+    baslikDiv.textContent = eskiMetin;
+  }
+}
+
+async function metinGonder(){
+  const ad = document.getElementById("pm-ad").value.trim() || "Yapıştırılan Sözleşme";
+  const metin = document.getElementById("pm-metin").value.trim();
+  if(!metin) return alert("Lütfen sözleşme metnini yapıştırın.");
+
+  const fd = new FormData();
+  fd.append("modul", "inceleme");
+  fd.append("baslik", ad);
+  fd.append("metin_girisi", metin);
+
+  modalKapat('metin-modal');
+  try {
+    const res = await fetch("/api/evrak-yukle-ve-isle", {method:"POST", body:fd});
+    const veri = await res.json();
+    alert(veri.mesaj || "Metin başarıyla incelendi ve tabloya eklendi!");
+    yukle();
+  } catch(err){
+    alert("Hata: " + err.message);
+  }
+}
+
+async function manuelKaydet(e){
+  e.preventDefault();
+  const veri = {
+    belge_adi: document.getElementById("fm-belge").value.trim(),
+    karsi_taraf: document.getElementById("fm-karsi").value.trim(),
+    sozlesme_turu: document.getElementById("fm-tur").value.trim(),
+    yururluk: document.getElementById("fm-yururluk").value.trim(),
+    bitis_sure: document.getElementById("fm-sure").value.trim(),
+    otomatik_uzatma: document.getElementById("fm-uzatma").value,
+    taban_hukuk: document.getElementById("fm-hukuk").value.trim(),
+    sorumluluk_tavani: document.getElementById("fm-tavan").value.trim()
+  };
+  await api("/api/inceleme/ekle", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(veri)});
+  modalKapat('manuel-modal');
+  yukle();
+}
+
+async function kaynaktanGonder(){
+  const yol = document.getElementById("kaynak-yol").value.trim();
+  if(!yol) return alert("Lütfen bir klasör veya bağlantı yolu belirtin.");
+  alert(`"${yol}" kaynağından belgeler taranıyor ve analiz kuyruğuna alınıyor.`);
+}
+
+async function ornekSil(){
+  await api("/api/inceleme/ornek-sil", {method:"POST"});
+  document.getElementById("ornek-bant").style.display = "none";
+  document.getElementById("toast").style.display = "flex";
+  yukle();
+}
+
+async function ornekGeriAl(){
+  await api("/api/ornek-geri-yukle", {method:"POST"});
+  document.getElementById("toast").style.display = "none";
+  document.getElementById("ornek-bant").style.display = "flex";
+  yukle();
+}
+
+yukle();
+</script>
+<script>window.GIRIS_MODUL="inceleme";window.GIRIS_BASLIK="+ Belge ekle";window.GIRIS_ACIKLAMA="Sözleşmeleri tek tek yükleyin — Her belge otomatik analiz edilir ve tabloya satır olarak ekler. Eksik alanlar 'Bulunamadı + arama kapsamı' ile doldurulur (uydurma yok).";window.GIRIS_ALANLARI=[{key:"dosya",etiket:"Sözleşme dosyası (PDF/Word/metin)",tur:"dosya"}];window.GIRIS_GONDER=async (v,d)=>{ if(!d) throw new Error("Dosya seçin"); const fd=new FormData(); fd.append("dosya",d); const r=await fetch("/api/giris/inceleme/yeni-belge?inceleme_id=1",{method:"POST",body:fd}); if(!r.ok) throw new Error(await r.text()); const s=await r.json(); alert("Eklendi ("+s.cikarim_yontemi+" çıkarım). Eksik alanlar: "+s.eksik_alanlar.join(", ")); };window.GIRIS_GONDER_BASLIK="Belgeyi incele";</script>
+<script src="/static/giris.js"></script>
+</body></html>

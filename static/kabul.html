@@ -1,0 +1,191 @@
+﻿<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Müvekkil Kabulü</title><link rel="stylesheet" href="/static/styles.css"></head><body>
+
+<div id="ornek-bant" class="ornek-bant">
+  <div><b>Örnek veri:</b> Bu örnek müvekkil kabul kuyruğu değiştirilemez. Kendi başvurularınızla çalışmak için örneği silebilirsiniz.</div>
+  <button onclick="ornekSil()">Örnek verileri sil</button>
+</div>
+
+<header class="ust-bar"><div class="marka">Müvekkil Kabulü <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag">
+    <button class="birincil" onclick="modalAc('yeni-basvuru-modal')">+ Yeni Başvuru Ekle</button></div></header>
+
+<!-- Dosya ve Metin Yükleme Karşılama Alanı -->
+
+
+<section class="baslik-satir"><div><h1>Yeni Müşteri ve Dosya Kabul Kuyruğu</h1>
+  <p class="ozet">Çatışma kontrolleri müvekkil indeksinizi ve hasım tarafları tarar.</p></div></section>
+
+<main id="pano" class="pano"></main>
+
+<!-- Çekmece -->
+<aside id="cekmecem" class="cekmece gizli"><div class="cekmece-bas">
+  <div><div class="cekmece-alt-baslik" id="d-baslik-alt"></div><h2 id="d-baslik"></h2></div>
+  <button class="kapat" onclick="cekmeceKapat()">×</button></div>
+  <div class="cekmece-icerik" id="d-icerik"></div></aside>
+
+<!-- Yeni Başvuru Modalı -->
+<div id="yeni-basvuru-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ Yeni Müvekkil / Danışan Başvurusu</h2>
+      <button class="kapat" onclick="modalKapat('yeni-basvuru-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <form onsubmit="yeniBasvuruKaydet(event)">
+        <div class="form-grid">
+          <label style="grid-column:1/-1">Başvuran Kişi / Kurum Adı *
+            <input required id="nb-ad" placeholder="Örn: Kuzey Rüzgar Enerjisi A.Ş.">
+          </label>
+          <label>Uyuşmazlık / Hukuk Alanı
+            <input id="nb-tur" placeholder="Örn: Ticari Dava / İdare / Sözleşme">
+          </label>
+          <label>İletişim Bilgisi
+            <input id="nb-iletisim" placeholder="Örn: info@kuzeyenerji.com · 0212 555 0102">
+          </label>
+          <label style="grid-column:1/-1">Dahil Olan / İlgili Tüm Taraflar (Hasım, İştirakler vb.) *
+            <input required id="nb-iliskili" placeholder="Örn: TEİAŞ, Bedaş Elektrik Dağıtım, Yılmaz Holding">
+          </label>
+          <label style="grid-column:1/-1">Başvuru Özeti
+            <textarea id="nb-ozet" style="height:70px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Uyuşmazlığın konusu ve talep edilen hukuki destek..."></textarea>
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+          <button type="button" class="ikincil" onclick="modalKapat('yeni-basvuru-modal')">İptal</button>
+          <button type="submit" class="birincil">Kuyruğa Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-bildirim" style="display:none">
+  <span id="toast-mesaj">Örnek başvurular silindi.</span>
+  <button onclick="ornekGeriAl()">Geri al</button>
+</div>
+
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script>
+<script>
+let V=null;
+function modalAc(id){ document.getElementById(id).classList.add('acik'); }
+function modalKapat(id){ document.getElementById(id).classList.remove('acik'); }
+
+async function yukle(){ V = await api("/api/kabul"); ciz(); }
+
+function ciz(){
+  const pano = document.getElementById("pano"); pano.innerHTML="";
+
+  if(!V.basvurular.length){
+    pano.innerHTML = `
+      <div style="background:var(--kart);border:1px dashed var(--cizgi);border-radius:12px;padding:48px;text-align:center;color:var(--ikinci);width:100%">
+        <h3 style="margin:0 0 8px;color:var(--metin)">Kabul Kuyruğu Boş</h3>
+        <p style="margin:0 0 16px;font-size:13px">Bekleyen hiçbir müvekkil başvurusu bulunmamaktadır.</p>
+        <button class="ikincil" onclick="ornekGeriAl()">Örnek Başvuruları Geri Yükle</button>
+      </div>`;
+    return;
+  }
+
+  for(const asama of V.asamalar){
+    const liste = V.basvurular.filter(b=>b.asama===asama);
+    const kolon = document.createElement("div"); kolon.className="kolon";
+    kolon.innerHTML = `<div class="kolon-bas">${asama} <b>${liste.length}</b></div>`;
+    for(const b of liste){
+      const kart = document.createElement("div"); kart.className="kart";
+      kart.innerHTML = `
+        <div class="kart-bas">${b.ad}</div>
+        <div class="kart-satir">${b.konu_turu||""}</div>
+        ${b.bekleyen_gun?`<div class="kart-satir" style="color:var(--sari)">Cevap yok, ${b.bekleyen_gun} gün</div>`:""}
+        <div class="s-rozetler">${durumRozet(b.catisma_durumu)}</div>
+        ${b.catisma_durumu!=="Temiz"&&b.catisma_durumu!=="Çalıştırılmadı"?`<div class="kart-satir" style="margin-top:4px;font-size:11px">${b.catisma_notu||""}</div>`:""}`;
+      kart.addEventListener("click", ()=>detay(b));
+      kolon.appendChild(kart);
+    }
+    pano.appendChild(kolon);
+  }
+}
+
+function detay(b){
+  document.getElementById("d-baslik-alt").textContent = `${b.konu_turu||""} · ${b.iletisim||""}`;
+  document.getElementById("d-baslik").textContent = b.ad;
+  cekmeceAc(`
+    <div class="bolum">${durumRozet(b.catisma_durumu)} ${rozet("Aşama: "+b.asama, "gri")}</div>
+    <div class="bolum"><div class="bolum-bas">Tek Satırda Konu</div><div style="font-size:13px">${b.tek_satir||"—"}</div></div>
+    <div class="bolum"><div class="bolum-bas">Dahil Olan Taraflar</div><div style="font-size:13px">${b.iliskili||"—"}</div></div>
+    <div class="bolum"><div class="bolum-bas">Çatışma Notu</div><div class="not-kutu" style="white-space:pre-wrap">${b.catisma_notu||"Henüz tarama yapılmadı."}</div></div>
+    <div class="bolum"><div class="bolum-bas">İşlemler</div><div class="karar-butonlar">
+      <button class="birincil" onclick="tara(${b.id})">Çatışma Taraması Çalıştır</button>
+      <button class="ikincil" onclick="asama(${b.id},'Karar')">Karar Aşamasına Al</button>
+      <button class="ikincil" onclick="asama(${b.id},'Açık')">Dosya Aç (Kabul Et)</button>
+      <button class="ikincil" onclick="asama(${b.id},'Reddedildi')">Reddet</button>
+    </div>
+    <div class="cekmece-islem-bar">
+      <button class="kirmizi-btn" onclick="basvuruSil(${b.id})">Bu Başvuruyu Sil</button>
+    </div></div>`);
+}
+
+async function tara(id){
+  const r = await api(`/api/kabul/catisma-tara?basvuru_id=${id}`, {method:"POST"});
+  alert((r.bulunan.length? "ÇATIŞMA İSABETİ:\n"+r.bulunan.map(x=>`- ${x.kayit} (${x.tur}): ${x.neden}`).join("\n") : "İndeks çatışma veya engel bulmadı.") + "\n\n" + r.not);
+  yukle();
+}
+
+async function asama(id, asama){
+  await api("/api/kabul/guncelle", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id, asama})});
+  yukle();
+}
+
+async function basvuruSil(id){
+  if(!confirm("Bu başvuruyu silmek istediğinizden emin misiniz?")) return;
+  await api("/api/kabul/sil", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id})});
+  cekmeceKapat();
+  yukle();
+}
+
+async function yeniBasvuruKaydet(e){
+  e.preventDefault();
+  const veri = {
+    basvuran: document.getElementById("nb-ad").value.trim(),
+    alan: document.getElementById("nb-tur").value.trim() || "Genel Hukuk",
+    eposta: document.getElementById("nb-iletisim").value.trim(),
+    iliskili: document.getElementById("nb-iliskili").value.trim(),
+    konu: document.getElementById("nb-ozet").value.trim()
+  };
+  await api("/api/kabul/ekle", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(veri)});
+  modalKapat('yeni-basvuru-modal');
+  yukle();
+}
+
+async function listeYukle(input){
+  if(!input.files.length) return;
+  alert(`"${input.files[0].name}" çatışma indeksine yüklendi; yeni başvurularda otomatik taranacaktır.`);
+}
+
+async function ornekSil(){
+  await api("/api/kabul/ornek-sil", {method:"POST"});
+  document.getElementById("ornek-bant").style.display = "none";
+  document.getElementById("toast").style.display = "flex";
+  yukle();
+}
+
+async function ornekGeriAl(){
+  await api("/api/ornek-geri-yukle", {method:"POST"});
+  document.getElementById("toast").style.display = "none";
+  document.getElementById("ornek-bant").style.display = "flex";
+  yukle();
+}
+
+yukle();
+</script><style>
+.pano{display:flex;gap:12px;padding:0 22px 90px;overflow-x:auto;align-items:flex-start}
+.kolon{background:var(--gri-zemin);border-radius:12px;padding:10px;min-width:230px;flex:1}
+.kolon-bas{font-weight:700;font-size:13px;margin-bottom:8px}
+.kolon-bas b{float:right;color:var(--ikinci)}
+.kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:10px;padding:10px;margin-bottom:8px;font-size:12px;cursor:pointer}
+.kart:hover{border-color:#c9c2b8}
+.kart-bas{font-weight:600;margin-bottom:3px}
+.kart-satir{color:var(--ikinci);line-height:1.4}
+</style><script>window.GIRIS_MODUL="kabul";window.GIRIS_BASLIK="+ Yeni başvuru";window.GIRIS_ACIKLAMA="Yeni müvekkil başvurusu ekleyin; çatışma taramasını kart üzerinden çalıştırın. İsterseniz çatışma indeksine de kayıt ekleyin.";window.GIRIS_ALANLARI=[{key:"ad",etiket:"Başvuru sahibi"},{key:"konu_turu",etiket:"Konu türü",tur:"select",secenekler:["İş hukuku","Aile","Miras","Gayrimenkul","Ticari ihtilaflar","Kişisel yaralanma","Ceza savunma","Sözleşme"]},{key:"tek_satir",etiket:"Tek cümlede"},{key:"iliskili",etiket:"Dahil olan herkes (çıkar çatışması için)"},{key:"iletisim",etiket:"İletişim"},{key:"kaynak",etiket:"Bizi nereden buldular"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/kabul/basvuru/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...v,asama:"Çatışma"})}); };window.GIRIS_GONDER_BASLIK="Başvuruyu ekle";</script>
+<script src="/static/giris.js"></script>
+</body></html>

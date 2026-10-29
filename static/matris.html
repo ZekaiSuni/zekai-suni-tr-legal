@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Karşılaştırmalı Hukuk Matrisi</title><link rel="stylesheet" href="/static/styles.css"></head><body>
+<header class="ust-bar"><div class="marka">Karşılaştırmalı Hukuk Matrisi <span class="cipy ornek">Örnek veri</span></div>
+  <div class="ust-sag"></div></header>
+<section class="baslik-satir"><div><h1 id="ad"></h1><p class="ozet" id="ozet"></p></div></section>
+<div class="uyari-kutu" style="margin:0 22px 12px"><div class="uyari" style="background:var(--mavi-zemin);font-size:13px" id="not-kutu"></div></div>
+<main id="liste"></main>
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script>
+<script>let V=null;
+const RENK={"Evet":["Evet","yesil"],"Hayır":["Hayır","kirmizi"],"Koşullu":["Koşullu","sari"],"Belirsiz":["Belirsiz","gri"],"Uygulanamaz":["Uygulanamaz","gri"]};
+async function yukle(){ V=await api("/api/matris"); ciz(); }
+function ciz(){
+  document.getElementById("ad").textContent=V.seti.ad;
+  document.getElementById("ozet").textContent=V.seti.aciklama;
+  document.getElementById("not-kutu").innerHTML="⚠ "+V.not+" TR hücresi: <b>TBK m. 444-445</b> (geçerlik + yüzde 35 brüt ücret tazminatı, en fazla 2 yıl) — web araştırmasıyla doğrulandı.";
+  const yargilar=[...new Set(V.hucreler.map(h=>h.yargi))];
+  const sorular=[...new Set(V.hucreler.map(h=>h.alt_soru))];
+  let html='<table class="matris"><tr><th>Yargı</th>'+sorular.map(s=>"<th>"+s+"</th>").join("")+"</tr>";
+  for(const y of yargilar){
+    html+='<tr><td class="m-sozlesme">'+y+"</td>";
+    for(const s of sorular){
+      const h=V.hucreler.find(x=>x.yargi===y&&x.alt_soru===s);
+      if(!h){html+='<td class="bos"></td>';continue;}
+      const r=RENK[h.cevap]||["Belirsiz","gri"];
+      html+='<td><span class="matris-hucre '+r[1]+'" title="'+(h.aciklama||"").replace(/"/g,"&quot;")+" — "+h.kaynak+'">'+r[0]+(h.dogrulandi?" ✓":"")+'</span><div class="alinti-kaynak">'+h.kaynak+"</div></td>";
+    }
+    html+="</tr>";
+  }
+  document.getElementById("liste").innerHTML=html+"</table>";
+}
+yukle();
+</script><script>window.GIRIS_MODUL="matris";window.GIRIS_BASLIK="+ Hücre ekle";window.GIRIS_ACIKLAMA="Matrise yargı/alt soru hücresi ekleyin. TR hücrelerini yerel kaynaklarla doğrulamadan 'Doğrulandı' işaretlemeyin.";window.GIRIS_ALANLARI=[{key:"seti_id",etiket:"Set no",ornek:"1"},{key:"yargi",etiket:"Yargı (ülke)"},{key:"alt_soru",etiket:"Alt soru"},{key:"cevap",etiket:"Cevap",tur:"select",secenekler:["Evet","Hayır","Koşullu","Belirsiz","Uygulanamaz"]},{key:"aciklama",etiket:"Açıklama",tur:"textarea"},{key:"kaynak",etiket:"Kaynak (madde/karar)"}];window.GIRIS_GONDER=async (v)=>{ await api("/api/giris/matris/hucre/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); };window.GIRIS_GONDER_BASLIK="Hücreyi ekle";</script>
+<script src="/static/giris.js"></script>
+</body></html>
+

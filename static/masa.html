@@ -1,0 +1,349 @@
+﻿<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zekai Suni — Hukuk Masası & Hukuki Görüş</title><link rel="stylesheet" href="/static/styles.css">
+</head><body>
+
+<div id="ornek-bant" class="ornek-bant">
+  <div><b>Örnek veri:</b> Bu örnek hukuk masası değiştirilemez veya talep gönderilemez. Kendi masanızı oluşturmak için örneği silebilirsiniz.</div>
+  <button onclick="ornekSil()">Örnek verileri sil</button>
+</div>
+
+<header class="ust-bar"><div class="marka">Hukuk Masası <span class="cipy ornek" id="ornek-etiket">Örnek veri</span></div>
+  <div class="ust-sag">
+    <button class="ikincil" onclick="yeniTalepModalAc()">+ Yeni Talep Aç</button>
+    <button class="birincil" style="background:#111;color:#fff;font-weight:600;display:flex;align-items:center;gap:6px" onclick="yeniTalepModalAc()"><span>Kendi Verilerinizle Başlayın</span> </button>
+    <button class="ikincil" id="btn-girdiler">Hukuki Görüş Kaydı <b id="girdi-sayi"></b></button>
+    <button class="ikincil" onclick="location.href='/api/masa/export.json'">⤓ JSON</button>
+  </div></header>
+
+<!-- Karşılama Kartı -->
+
+
+<section class="baslik-satir"><div><h1>Hukuk Danışma Masası — İş Birimi Talepleri</h1>
+  <p class="ozet" id="ozet">…</p></div>
+  <div class="baslik-sag"></div></section>
+
+<section class="filtreler">
+  <span class="cipy secili" id="f-tumu" onclick="filtrele('tumu')">Tümü</span>
+  <span class="cipy" id="f-yeni" onclick="filtrele('yeni')">Yeni</span>
+  <span class="cipy" id="f-bekleyen" onclick="filtrele('bekleyen')">Bilgi bekliyor</span>
+  <span class="cipy" id="f-taslak" onclick="filtrele('taslak')">Taslak hazır</span>
+  <span class="cipy kirmizi-cipy" id="f-gec" onclick="filtrele('gec')">Geciken</span>
+  <span class="cipy" id="f-hassas" onclick="filtrele('hassas')">Hassas</span>
+</section>
+
+<main id="liste"></main>
+
+<!-- Hukuki Görüş Modalı -->
+<div id="girdi-modal" class="modal-gizli"><div class="modal">
+  <div class="modal-bas"><h2>Hukuki Görüş Kaydı — Kurumsal Standart Pozisyonlarımız</h2><button class="kapat" onclick="document.getElementById('girdi-modal').classList.remove('acik')">×</button></div>
+  <div class="modal-icerik"><p class="uyari">Bu kayıt üç alanı besler: avukatsız self-servis hızlı yanıtlar, AI mütalaa taslakları ve gelen sözleşmelerin karşılaştırılması. "İş birlikleriyle paylaşılmaz" işaretli görüşler yalnız hukuk bürosu içinde kalır.</p>
+  <div id="girdi-liste"></div></div></div></div>
+
+<!-- Yeni Talep Açma Modalı -->
+<div id="yeni-talep-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>+ Yeni Hukuki Destek Talebi Aç</h2>
+      <button class="kapat" onclick="modalKapat('yeni-talep-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <form onsubmit="yeniTalepKaydet(event)">
+        <div class="form-grid">
+          <label style="grid-column:1/-1">Talep Başlığı / Konu *
+            <input required id="nt-baslik" placeholder="Örn: Yeni yazılım lisans sözleşmesi cezai şart maddesi incelemesi">
+          </label>
+          <label>Talep Eden Kişi *
+            <input required id="nt-soran" placeholder="Örn: Caner Erkin">
+          </label>
+          <label>Bölüm / Departman
+            <select id="nt-bolum">
+              <option>Satınalma & Tedarik</option>
+              <option>Satış & Pazarlama</option>
+              <option>İnsan Kaynakları</option>
+              <option>Finans & Muhasebe</option>
+              <option>Bilgi Teknolojileri</option>
+              <option>Üst Yönetim</option>
+            </select>
+          </label>
+          <label>Kategori
+            <input id="nt-kategori" placeholder="Örn: Sözleşme / KVKK / İş Hukuku">
+          </label>
+          <label>İhtiyaç Duyulan Son Tarih
+            <input type="date" id="nt-tarih">
+          </label>
+          <label style="grid-column:1/-1">Hukuki Talep Detayı / Soru Metni *
+            <textarea required id="nt-metin" style="height:110px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Lütfen talep edilen hukuki hususu ve detayları yazınız..."></textarea>
+          </label>
+          <label class="sec">
+            <input type="checkbox" id="nt-hassas"> Hassas / Gizli Talep (Otomatik taslak üretilmez, doğrudan avukata yönlendirir)
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+          <button type="button" class="ikincil" onclick="modalKapat('yeni-talep-modal')">İptal</button>
+          <button type="submit" class="birincil">Talebi Masaya Gönder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Metin Yapıştırma Modalı -->
+<div id="metin-modal" class="modal-gizli">
+  <div class="modal">
+    <div class="modal-bas">
+      <h2>Sözleşme / Hukuki Görüş Metni Yapıştır</h2>
+      <button class="kapat" onclick="modalKapat('metin-modal')">×</button>
+    </div>
+    <div class="modal-icerik">
+      <p class="uyari" style="background:var(--mavi-zemin);color:var(--mavi)">
+        Politika, sözleşme maddesi veya şirket içi rehber metnini yapıştırın. Bu metinden kurumsal hukuki görüş otomatik olarak çıkarılacaktır.
+      </p>
+      <label style="font-size:12px;color:var(--ikinci);display:block;margin-top:10px">Başlık / Kaynak</label>
+      <input id="pm-baslik" placeholder="Örn: Satınalma Yetki Matrisi ve Fesih Şartları" style="width:100%;padding:8px;border:1px solid var(--cizgi);border-radius:8px;margin-bottom:10px">
+      <label style="font-size:12px;color:var(--ikinci);display:block">Metin</label>
+      <textarea id="pm-metin" style="width:100%;height:160px;padding:8px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Metni buraya yapıştırın..."></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px">
+        <button class="ikincil" onclick="modalKapat('metin-modal')">İptal</button>
+        <button class="birincil" onclick="metinGonder()">Oku ve Masaya İşle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-bildirim" style="display:none">
+  <span id="toast-mesaj">Örnek talepler silindi.</span>
+  <button onclick="ornekGeriAl()">Geri al</button>
+</div>
+
+<!-- Çekmece -->
+<aside id="cekmecem" class="cekmece gizli"><div class="cekmece-bas">
+  <div><div class="cekmece-alt-baslik" id="d-baslik-alt"></div><h2 id="d-baslik"></h2></div>
+  <button class="kapat" onclick="cekmeceKapat()">×</button></div>
+  <div class="cekmece-icerik" id="d-icerik"></div></aside>
+
+<footer class="feragat">Bu içerik hukuki görüş değildir; güvenilmeden önce bir avukat tarafından gözden geçirilmelidir.</footer>
+<script src="/static/nav.js"></script><script src="/static/ortak.js"></script>
+<script>
+let V=null, FILTRE="tumu", T_ID=null;
+
+function modalAc(id){ document.getElementById(id).classList.add('acik'); }
+function modalKapat(id){ document.getElementById(id).classList.remove('acik'); }
+function yeniTalepModalAc(){ modalAc('yeni-talep-modal'); }
+function metinModalAc(){ modalAc('metin-modal'); }
+
+async function yukle(){ V = await api("/api/masa"); ciz(); }
+
+function ciz(){
+  document.getElementById("ozet").innerHTML = V.talepler.length
+    ? `${V.talepler.length} açık talep · <b>${V.talepler.filter(t=>t.durum==="Yeni").length} yeni</b> · ${V.talepler.filter(t=>t.durum==="Bilgi bekliyor").length} bilgi bekliyor · avukatsız çözüm verisi: ${V.avukatsiz_orani || '— (ölçüm yok)'}`
+    : `Henüz kayıtlı talep yok. Yukarıdaki alandan müzakere rehberi yükleyebilir veya "+ Yeni Talep Aç" butonuna basabilirsiniz.`;
+  document.getElementById("girdi-sayi").textContent = V.onay_bekleyen_girdi;
+  
+  const liste = document.getElementById("liste");
+  liste.innerHTML = "";
+
+  if(!V.talepler.length){
+    liste.innerHTML = `
+      <div style="background:var(--kart);border:1px dashed var(--cizgi);border-radius:12px;padding:48px;text-align:center;color:var(--ikinci)">
+        <h3 style="margin:0 0 8px;color:var(--metin)">Hukuk Masası Boş</h3>
+        <p style="margin:0 0 16px;font-size:13px">Bekleyen hiçbir talep bulunmamaktadır. "+ Yeni Talep Aç" butonunu kullanarak yeni bir hukuki başvuru girebilirsiniz.</p>
+        <button class="ikincil" onclick="ornekGeriAl()">Örnek Masayı Geri Yükle</button>
+      </div>`;
+    return;
+  }
+
+  for(const t of V.talepler){
+    if(FILTRE==="yeni" && t.durum!=="Yeni") continue;
+    if(FILTRE==="bekleyen" && t.durum!=="Bilgi bekliyor") continue;
+    if(FILTRE==="taslak" && t.durum!=="Taslak hazır") continue;
+    if(FILTRE==="hassas" && !t.hassas) continue;
+    const gec = t.gerek_tarih && new Date(t.gerek_tarih) < new Date();
+    if(FILTRE==="gec" && !gec) continue;
+
+    const div = document.createElement("div");
+    div.className="sozlesme-satir";
+    div.style.gridTemplateColumns = "1fr 260px 160px";
+    div.innerHTML = `
+      <div><div class="s-ad">${esc(t.baslik)}</div>
+        <div class="s-alt">${esc(t.kategori||"—")} · ${esc(t.soran_ad)} · ${esc(t.bolum)}</div>
+        <div class="s-rozetler">${durumRozet(t.risk)} ${t.hassas?'<span class="mini-cipy mini-duzeltildi">Hassas</span>':""}
+          ${t.atanan?`<span class="mini-cipy mini-sahip">${esc(t.atanan)}</span>`:""}
+          ${t.durum==="Taslak hazır"?'<span class="mini-cipy mini-inceleme">AI Taslağı</span>':""}
+          ${t.durum==="Bilgi bekliyor"?'<span class="mini-cipy mini-sahip">saat durduruldu</span>':""}</div></div>
+      <div class="s-islem"><b>İstek:</b> ${esc(t.metin.slice(0,180))}</div>
+      <div class="s-son-gun"><div class="deger">${t.gerek_tarih?trTarih(t.gerek_tarih):"—"}</div>
+        ${gec?rozet("Gecikti","kirmizi"):""} ${t.durum==="Kapatıldı"?rozet("Kapatıldı","yesil"):""}</div>`;
+    div.addEventListener("click", ()=>detay(t));
+    liste.appendChild(div);
+  }
+}
+
+function filtrele(f){
+  FILTRE = f;
+  document.querySelectorAll(".filtreler .cipy").forEach(c=>c.classList.remove("secili"));
+  const el = document.getElementById("f-"+f);
+  if(el) el.classList.add("secili");
+  ciz();
+}
+
+function detay(t){
+  T_ID = t.id;
+  document.getElementById("d-baslik-alt").textContent = `${t.kategori||"—"} · ${t.soran_ad} · ${t.bolum}`;
+  document.getElementById("d-baslik").textContent = t.baslik;
+  let html = `<div class="bolum">${durumRozet(t.risk)} ${durumRozet(t.durum)}
+    <div style="margin-top:8px;font-size:13px"><b>Talep Metni:</b><br>${esc(t.metin)}</div>
+    ${t.gerek_tarih?`<div class="alinti-kaynak">Gerekli tarih: ${trTarih(t.gerek_tarih)} · Atanan: ${esc(t.atanan||"—")}</div>`:""}</div>`;
+  
+  if(t.taslak){
+    html += `<div class="bolum"><div class="bolum-bas">Mütalaa Taslağı (AI) — ${esc(t.taslak_turu||"Hukuki Görüş")}</div>
+      <div class="alinti-kutu" style="font-family:inherit">${esc(t.taslak).replace(/\n/g,"<br>")}</div>
+      <div class="alinti-kaynak">Gönderen unvanı: ${esc(t.gonderen_kimlikle||"Hukuk Müşaviri")}</div></div>`;
+  }
+  if(t.cevap){
+    html += `<div class="bolum"><div class="bolum-bas">Onaylanıp Gönderilen Hukuki Görüş</div>
+      <div class="alinti-kutu" style="font-family:inherit;border-left:4px solid var(--yesil)">${esc(t.cevap).replace(/\n/g,"<br>")}</div></div>`;
+  }
+
+  html += `<div class="bolum"><div class="karar-butonlar">
+    <div style="margin:8px 0"><span class="alinti-kaynak">Gönderen (imzalayan): </span><input id="gonderen-kutu" value="${esc(t.gonderen_kimlikle||"Hukuk Müşaviri")}" style="border:1px solid var(--cizgi);border-radius:6px;padding:4px 8px;font-size:13px"></div>
+${t.durum!=="Kapatıldı"?`<button class="birincil" onclick="cevapOnayla(${t.id})">Onayla ve Gönder</button>`:""}
+    <button class="ikincil" onclick="cevapDuzenle(${t.id})">Görüşü Düzenle</button>
+    <button class="kirmizi-btn" onclick="talepSil(${t.id})">Bu Talebi Sil</button>
+  </div><div id="cevap-alan"></div></div>`;
+
+  cekmeceAc(html);
+}
+
+function cevapDuzenle(id){
+  const t = V.talepler.find(x=>x.id===id);
+  document.getElementById("cevap-alan").innerHTML = `
+    <textarea id="cevap-kutu" style="width:100%;min-height:120px;border:1px solid var(--cizgi);border-radius:8px;padding:8px;font-size:13px;margin-top:10px"></textarea>
+    <button class="birincil" style="margin-top:8px" onclick="cevapKaydet(${id})">Kaydet</button>`;
+    document.getElementById("cevap-kutu").value = t.cevap || t.taslak || "";
+}
+
+async function cevapKaydet(id){
+  const yeniCevap = document.getElementById("cevap-kutu").value;
+  await api(`/api/masa/talep/${id}/cevap`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({cevap: yeniCevap, gonderen_kimlikle: (document.getElementById("gonderen-kutu")||{}).value || "Hukuk Müşavirliği"})
+  });
+  yukle();
+  detay(V.talepler.find(x=>x.id===id));
+}
+
+async function cevapOnayla(id){
+  const t = V.talepler.find(x=>x.id===id);
+  const sonCevap = (t.cevap || t.taslak || "").trim();
+  if (!sonCevap) { alert("Onaylanacak metin yok — önce cevap yazın."); return; }
+  const gonderen = (document.getElementById("gonderen-kutu")||{}).value || "Hukuk Müşaviri";
+  await api(`/api/masa/talep/${id}/cevap`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({cevap: sonCevap, gonderen_kimlikle: gonderen, onayla: true})
+  });
+  alert("Hukuki görüş onaylandı ve talep sahibine iletildi.");
+  yukle();
+  cekmeceKapat();
+}
+
+async function talepSil(id){
+  if(!confirm("Bu talebi silmek istediğinizden emin misiniz?")) return;
+  await api("/api/masa/talep/sil", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id})});
+  cekmeceKapat();
+  yukle();
+}
+
+async function yeniTalepKaydet(e){
+  e.preventDefault();
+  const veri = {
+    baslik: document.getElementById("nt-baslik").value.trim(),
+    soran_ad: document.getElementById("nt-soran").value.trim(),
+    bolum: document.getElementById("nt-bolum").value,
+    kategori: document.getElementById("nt-kategori").value.trim() || "Genel Hukuki Danışmanlık",
+    metin: document.getElementById("nt-metin").value.trim(),
+    gerek_tarih: document.getElementById("nt-tarih").value || null,
+    hassas: document.getElementById("nt-hassas").checked
+  };
+  await api("/api/masa/talep/ekle", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(veri)});
+  modalKapat('yeni-talep-modal');
+  yukle();
+}
+
+// Dosya yükleme & Müzakere Rehberi bırakma
+const dropzone = document.getElementById("dropzone");
+if (dropzone) {
+['dragenter', 'dragover'].forEach(name => {
+  dropzone.addEventListener(name, (e)=>{ e.preventDefault(); dropzone.style.borderColor="var(--mavi)"; });
+});
+['dragleave', 'drop'].forEach(name => {
+  dropzone.addEventListener(name, (e)=>{ e.preventDefault(); dropzone.style.borderColor="#c9c2b8"; });
+});
+dropzone.addEventListener('drop', (e)=>{
+  const files = e.dataTransfer.files;
+  if(files.length) dosyayiGonder(files[0]);
+});
+}
+function dosyaSecildi(input){
+  if(input.files.length) dosyayiGonder(input.files[0]);
+}
+
+async function dosyayiGonder(file){
+  const fd = new FormData();
+  fd.append("modul", "masa");
+  fd.append("baslik", file.name);
+  fd.append("dosya", file);
+
+  try {
+    const res = await fetch("/api/evrak-yukle-ve-isle", {method:"POST", body:fd});
+    const veri = await res.json();
+    alert(veri.mesaj || "Belge masaya kaydedildi ve taslak hukuki görüş hazırlandı!");
+    yukle();
+  } catch(err){
+    alert("Yükleme hatası: " + err.message);
+  }
+}
+
+async function metinGonder(){
+  const baslik = document.getElementById("pm-baslik").value.trim() || "Metin Girişi";
+  const metin = document.getElementById("pm-metin").value.trim();
+  if(!metin) return alert("Lütfen metni yapıştırın.");
+
+  const fd = new FormData();
+  fd.append("modul", "masa");
+  fd.append("baslik", baslik);
+  fd.append("metin_girisi", metin);
+
+  modalKapat('metin-modal');
+  try {
+    const res = await fetch("/api/evrak-yukle-ve-isle", {method:"POST", body:fd});
+    const veri = await res.json();
+    alert(veri.mesaj || "Metin başarıyla incelendi ve masaya eklendi!");
+    yukle();
+  } catch(err){
+    alert("Hata: " + err.message);
+  }
+}
+
+async function ornekSil(){
+  await api("/api/masa/ornek-sil", {method:"POST"});
+  document.getElementById("ornek-bant").style.display = "none";
+  document.getElementById("toast").style.display = "flex";
+  yukle();
+}
+
+async function ornekGeriAl(){
+  await api("/api/ornek-geri-yukle", {method:"POST"});
+  document.getElementById("toast").style.display = "none";
+  document.getElementById("ornek-bant").style.display = "flex";
+  yukle();
+}
+
+yukle();
+</script>
+<script>window.GIRIS_MODUL="masa";window.GIRIS_BASLIK="+ Yeni talep";window.GIRIS_ACIKLAMA="İş biriminden gelen talebi kaydedin. Hassas işaretlerseniz AI taslak ÜRETMEZ. Diğerlerinde Hukuki görüş kayıtlarıyla eşleşen demo taslak otomatik üretilir (gerçek Claude için API anahtarı gerekir).";window.GIRIS_ALANLARI=[{key:"baslik",etiket:"Talep başlığı"},{key:"metin",etiket:"Talep metni",tur:"textarea"},{key:"soran_ad",etiket:"Talep sahibi"},{key:"bolum",etiket:"Birim",tur:"select",secenekler:["Satınalma","Satış","Pazarlama","Finans","İK","Teknoloji"]},{key:"kategori",etiket:"Kategori"},{key:"risk",etiket:"Risk",tur:"select",secenekler:["Düşük","Orta","Yüksek","Acil"]},{key:"hassas",etiket:"Hassas (yapay zeka taslak üretmez)",tur:"checkbox"},{key:"gerek_tarih",etiket:"Gerekli tarih",tur:"date"}];window.GIRIS_GONDER=async (v)=>{ const r=await api("/api/giris/masa/talep/ekle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}); alert(r.taslak_uretildi?"Talep kaydedildi — demo taslak üretildi (avukat onayı bekler).":"Talep kaydedildi (hassas — taslak üretilmedi)."); };window.GIRIS_GONDER_BASLIK="Talebi kaydet";</script>
+<script src="/static/giris.js"></script>
+</body></html>
