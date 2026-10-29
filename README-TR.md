@@ -31,12 +31,14 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8765
 
 Tarayıcı: `http://127.0.0.1:8765` · Testler: `pytest tests/ -q`
 
-## Yapay zeka modu
+## Yapay zeka modu & Harcama Güvenliği
 
-- **Anahtar yok:** uygulama yerel kural motoruyla (demo) çalışır — ücretsiz, çevrimdışı, sonuçlar "demo" etiketli.
-- **Anahtar varsa:** `set ANTHROPIC_API_KEY=...` sonrası çıkarımlar gerçek modele geçer. Bu modda Anthropic, kullanım başına ücret alır (kendi API hesabınızdan); ücret istemiyorsanız anahtar girmeyin — demo modu yeterlidir.
-- **Model listesi:** Model Ayarları → "Çalışan Modelleri Getir" düğmesi, hesabınızda gerçekten açık olan modelleri çeker.
-- **Yerel seçenek:** Ollama (localhost) seçilirse veri bilgisayardan çıkmaz.
+> ⚠️ **Önemli Maliyet Uyarısı:**  
+> Hukuk sözleşmeleri ve delil evrakları yüksek hacimli metinler olduğundan, canlı yapay zeka modelleri (özellikle Claude Sonnet / GPT-4o) önemli miktarda token harcaması yapabilir. Beklenmeyen maliyetlerle karşılaşmamak için bütçenizden ve harcama sınırlarınızdan emin olmadan ücretli API anahtarı bağlamayınız.
+
+- **Varsayılan Güvenli Mod (Anahtarsız):** Uygulama %100 ücretsiz, çevrimdışı ve deterministik yerel kural motoruyla çalışır. Herhangi bir ücret veya veri sızıntısı riski yoktur.
+- **Canlı Model Bağlama (İsteğe Bağlı & Bilinçli Tercih):** Yalnızca maliyet sorumluluğunu aldığınızda ve emin olduğunuzda terminal/kod üzerinden `set ANTHROPIC_API_KEY=sk-ant-...` tanımlayarak modeli devreye alabilirsiniz. Web arayüzü doğrudan harcama risklerini önlemek için kilitlidir.
+- **Yerel ve Ücretsiz Seçenek:** Ollama (localhost) seçilirse hiçbir ücret ödenmez ve verileriniz bilgisayarınızdan asla dışarı çıkmaz.
 
 ## Sınırlar
 

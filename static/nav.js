@@ -46,17 +46,18 @@
         <h2>⚙ Yapay Zeka Sağlayıcı & Model Ayarları</h2>
         <button class="kapat" onclick="document.getElementById('zekai-model-modal').classList.remove('acik')">×</button>
       </div>
-      <div class="modal-icerik">
-        <div class="uyari" style="background:var(--mavi-zemin);color:var(--mavi);margin-bottom:14px">
-          Desteklenen: Anthropic Claude ve yerel Ollama (gizli & ücretsiz). Diğer sağlayıcılar pilot kapsamında kilitlidir.
+            <div class="modal-icerik">
+        <div style="background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:11px 13px;border-radius:8px;font-size:12.5px;line-height:1.5;margin-bottom:14px">
+          <b>⚠️ Önemli Harcama & Güvenlik Uyarısı:</b><br>
+          Hukuk evrakları ve sözleşmeler yüksek hacimli metinler olduğundan, yapay zeka modelleri önemli miktarda token harcaması ve bütçe aşımı yaratabilir. Olası harcama maliyetlerinden emin olmadıkça ücretli API anahtarı bağlamayınız.
         </div>
         
         <div style="margin-bottom:12px">
           <label style="font-size:12px;font-weight:600;color:var(--ikinci);display:block;margin-bottom:4px">Yapay Zeka Sağlayıcısı</label>
           <select id="zm-saglayici" onchange="window.zekaiSaglayiciDegisti(this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--cizgi);border-radius:8px;font-size:14px">
-            <option value="claude">🟣 Anthropic Claude</option>
+            <option value="demo">⚡ Yerel Kural Motoru (API Anahtarsız / %100 Ücretsiz & Güvenli)</option>
+            <option value="claude">🟣 Anthropic Claude (Ücretli API)</option>
             <option value="ollama">💻 Yerel / Çevrimdışı Ollama (Gizli & Ücretsiz)</option>
-            <option value="demo">⚡ Yerel Kural Motoru (API Anahtarsız / Ücretsiz)</option>
           </select>
         </div>
 
@@ -64,18 +65,29 @@
           <label style="font-size:12px;font-weight:600;color:var(--ikinci);display:block;margin-bottom:4px">Model Adı
             <button type="button" id="zm-kesif-btn" onclick="window.zekaiModelleriGetir()" style="float:right;background:var(--mavi-zemin);color:var(--mavi);border:none;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">⟳ Çalışan Modelleri Getir</button>
           </label>
-          <input id="zm-model" list="zm-model-liste" style="width:100%;padding:8px 10px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Sağlayıcıyı seçin, anahtarı girin, keşfedin">
+          <input id="zm-model" list="zm-model-liste" style="width:100%;padding:8px 10px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="Model adı">
           <datalist id="zm-model-liste"></datalist>
           <div id="zm-kesif-sonuc" style="font-size:11px;color:var(--ikinci);margin-top:4px"></div>
         </div>
 
+
         <div style="margin-bottom:12px" id="zm-key-alan">
+          <div style="margin-bottom:6px">
+            <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;color:#b45309;font-weight:600">
+              <input type="checkbox" id="zm-maliyet-onay" onchange="window.zekaiMaliyetOnayDegisti(this.checked)">
+              Olası API harcamalarından haberdarım, maliyet sorumluluğunu kabul ediyorum
+            </label>
+          </div>
           <label style="font-size:12px;font-weight:600;color:var(--ikinci);display:block;margin-bottom:4px">
             API Anahtarı
             <span id="zm-key-durum" style="float:right;font-weight:normal;color:var(--ikinci)"></span>
           </label>
-          <input type="password" id="zm-key" style="width:100%;padding:8px 10px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px" placeholder="sk-...">
+          <input type="password" id="zm-key" disabled style="width:100%;padding:8px 10px;border:1px solid var(--cizgi);border-radius:8px;font-size:13px;background:#f4f4f5" placeholder="Yukarıdaki harcama onayını işaretlemeden açılamaz">
+          <div style="font-size:11px;color:var(--soluk,#888);margin-top:4px">
+            💡 <i>Tavsiye:</i> Anahtarı arayüze yapıştırmak yerine terminalden <code>set ANTHROPIC_API_KEY=...</code> olarak tanımlamak en güvenli yoldur.
+          </div>
         </div>
+    
 
         <div style="margin-bottom:16px" id="zm-url-alan">
           <label style="font-size:12px;font-weight:600;color:var(--ikinci);display:block;margin-bottom:4px">Özel API Uç Noktası (isteğe bağlı)</label>
@@ -92,7 +104,8 @@
           </div>
         </div>
       </div>
-    </div>`;
+    </div>
+  </div>`;
   document.body.appendChild(modalDiv);
 
   const stil = document.createElement("style");
