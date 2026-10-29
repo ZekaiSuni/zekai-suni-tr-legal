@@ -26,10 +26,10 @@ Delil İbrazı Kaydı · Duruşma & UYAP Takip Duvarı · Dava Portföyü · Dı
 
 ```bash
 pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+python -m uvicorn app.main:app
 ```
 
-Tarayıcı: `http://localhost:8000` (Port çakışması durumunda: `--port 8080`) · Testler: `pytest tests/ -q`
+Testler: `pytest tests/ -q`
 
 ## Yapay zeka modu & Harcama Güvenliği
 
